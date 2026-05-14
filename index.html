@@ -5,1065 +5,1248 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chromium Browser</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --chrome-bg: #dee1e6;
-    --chrome-dark: #292a2d;
-    --chrome-darker: #1e1f22;
-    --tab-active: #ffffff;
-    --tab-inactive: #d0d3da;
-    --tab-hover: #e8eaed;
-    --nav-bg: #ffffff;
-    --nav-border: #e0e0e0;
-    --address-bg: #f1f3f4;
-    --address-focus: #ffffff;
-    --btn-hover: rgba(0,0,0,0.08);
-    --btn-active: rgba(0,0,0,0.12);
-    --accent: #1a73e8;
-    --accent-dark: #1557b0;
-    --text-primary: #202124;
-    --text-secondary: #5f6368;
-    --bookmark-bar: #f1f3f4;
-    --status-bar: #e8eaed;
-    --shadow: rgba(0,0,0,0.2);
-    --radius: 20px;
-  }
+:root {
+  --chrome-bg:      #dee1e6;
+  --tab-active:     #ffffff;
+  --tab-inactive:   #d0d3da;
+  --tab-hover:      #e8eaed;
+  --nav-bg:         #ffffff;
+  --nav-border:     #e0e0e0;
+  --addr-bg:        #f1f3f4;
+  --addr-focus-bg:  #ffffff;
+  --btn-hover:      rgba(0,0,0,0.08);
+  --btn-active:     rgba(0,0,0,0.12);
+  --accent:         #1a73e8;
+  --accent-dk:      #1557b0;
+  --text:           #202124;
+  --text-dim:       #5f6368;
+  --bk-bar:         #f1f3f4;
+  --status:         #e8eaed;
+}
+body.dark {
+  --chrome-bg:      #2d2e30;
+  --tab-active:     #3c3d3f;
+  --tab-inactive:   #292a2c;
+  --tab-hover:      #35363a;
+  --nav-bg:         #3c3d3f;
+  --nav-border:     #555;
+  --addr-bg:        #2d2e30;
+  --addr-focus-bg:  #3c3d3f;
+  --btn-hover:      rgba(255,255,255,0.08);
+  --btn-active:     rgba(255,255,255,0.12);
+  --text:           #e8eaed;
+  --text-dim:       #9aa0a6;
+  --bk-bar:         #2d2e30;
+  --status:         #292a2c;
+}
 
-  body {
-    background: #2d2d2d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    overflow: hidden;
-  }
+body {
+  background: #202124;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  overflow: hidden;
+  transition: background 0.3s;
+}
 
-  /* ── Browser Window ────────────────────────────────── */
-  #browser {
-    width: min(1200px, 98vw);
-    height: min(780px, 96vh);
-    display: flex;
-    flex-direction: column;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.3);
-    background: var(--chrome-bg);
-  }
+/* ── Browser Window ─────────────────────────────────────────── */
+#browser {
+  width: min(1280px, 99vw);
+  height: min(800px, 97vh);
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 28px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,0,0,0.4);
+  background: var(--chrome-bg);
+  transition: background 0.3s, width 0.2s, height 0.2s, border-radius 0.2s;
+}
+#browser.maximized {
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0 !important;
+}
 
-  /* ── Title Bar / Tab Strip ──────────────────────────── */
-  #title-bar {
-    background: var(--chrome-bg);
-    display: flex;
-    align-items: flex-end;
-    padding: 8px 8px 0;
-    gap: 0;
-    user-select: none;
-    -webkit-app-region: drag;
-    min-height: 44px;
-  }
+/* ── Title Bar ──────────────────────────────────────────────── */
+#title-bar {
+  background: var(--chrome-bg);
+  display: flex;
+  align-items: flex-end;
+  padding: 8px 8px 0;
+  user-select: none;
+  min-height: 44px;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
 
-  #window-controls {
-    display: flex;
-    gap: 7px;
-    align-items: center;
-    padding: 0 10px 8px 4px;
-    flex-shrink: 0;
-    -webkit-app-region: no-drag;
-  }
+#window-controls {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  padding: 0 10px 8px 4px;
+  flex-shrink: 0;
+}
+.wc-btn {
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: filter 0.15s;
+  position: relative;
+}
+.wc-btn::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+.wc-btn:hover { filter: brightness(0.82); }
+#wc-close { background: #ff5f57; }
+#wc-min   { background: #febc2e; }
+#wc-max   { background: #28c840; }
 
-  .wc-btn {
-    width: 13px; height: 13px;
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    transition: filter 0.15s;
-  }
-  .wc-btn:hover { filter: brightness(0.85); }
-  #wc-close { background: #ff5f57; }
-  #wc-min   { background: #febc2e; }
-  #wc-max   { background: #28c840; }
+#tab-bar {
+  display: flex;
+  align-items: flex-end;
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  min-width: 0;
+}
+#tab-bar::-webkit-scrollbar { display: none; }
 
-  #tab-bar {
-    display: flex;
-    align-items: flex-end;
-    flex: 1;
-    overflow: hidden;
-    -webkit-app-region: no-drag;
-  }
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px 8px 12px;
+  min-width: 60px;
+  max-width: 200px;
+  height: 36px;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--tab-inactive);
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.12s, color 0.12s;
+}
+.tab:hover { background: var(--tab-hover); }
+.tab.active {
+  background: var(--tab-active);
+  color: var(--text);
+  font-weight: 500;
+  z-index: 1;
+}
+.tab-favicon { width: 14px; height: 14px; flex-shrink: 0; font-size: 12px; line-height: 14px; text-align: center; }
+.tab-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab-close {
+  flex-shrink: 0;
+  width: 18px; height: 18px;
+  border: none; background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; line-height: 1;
+  color: var(--text-dim);
+  padding: 0;
+  opacity: 0;
+  transition: background 0.1s, opacity 0.1s;
+}
+.tab:hover .tab-close,
+.tab.active .tab-close { opacity: 1; }
+.tab-close:hover { background: rgba(0,0,0,0.14); color: var(--text); }
+body.dark .tab-close:hover { background: rgba(255,255,255,0.12); }
 
-  .tab {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px 8px 14px;
-    min-width: 80px;
-    max-width: 220px;
-    height: 36px;
-    border-radius: 10px 10px 0 0;
-    cursor: pointer;
-    font-size: 12.5px;
-    color: var(--text-secondary);
-    background: var(--tab-inactive);
-    transition: background 0.15s, color 0.15s;
-    flex-shrink: 1;
-    position: relative;
-    overflow: hidden;
-  }
-  .tab:hover { background: var(--tab-hover); }
-  .tab.active {
-    background: var(--tab-active);
-    color: var(--text-primary);
-    font-weight: 500;
-    z-index: 1;
-  }
+#new-tab-btn {
+  width: 28px; height: 28px;
+  border: none; background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 19px;
+  color: var(--text-dim);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 4px 4px;
+  flex-shrink: 0;
+  transition: background 0.1s;
+}
+#new-tab-btn:hover { background: var(--btn-hover); }
 
-  .tab-favicon {
-    width: 14px; height: 14px;
-    flex-shrink: 0;
-    border-radius: 2px;
-    object-fit: contain;
-  }
+/* ── Navigation Bar ──────────────────────────────────────────── */
+#nav-bar {
+  background: var(--nav-bg);
+  display: flex;
+  align-items: center;
+  padding: 5px 8px;
+  gap: 3px;
+  border-bottom: 1px solid var(--nav-border);
+  flex-shrink: 0;
+  transition: background 0.3s, border-color 0.3s;
+}
 
-  .tab-title {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+.nav-btn {
+  width: 34px; height: 34px;
+  border: none; background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+  flex-shrink: 0;
+  transition: background 0.1s, color 0.1s;
+}
+.nav-btn:hover:not(:disabled) { background: var(--btn-hover); color: var(--text); }
+.nav-btn:active:not(:disabled) { background: var(--btn-active); }
+.nav-btn:disabled { opacity: 0.3; cursor: default; }
+.nav-btn svg { width: 18px; height: 18px; fill: currentColor; pointer-events: none; }
 
-  .tab-close {
-    flex-shrink: 0;
-    width: 18px; height: 18px;
-    border: none;
-    background: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1;
-    padding: 0;
-    transition: background 0.1s, color 0.1s;
-  }
-  .tab-close:hover { background: rgba(0,0,0,0.12); color: var(--text-primary); }
+#addr-wrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--addr-bg);
+  border: 2px solid transparent;
+  border-radius: 24px;
+  padding: 0 10px;
+  height: 36px;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+  cursor: text;
+  min-width: 0;
+}
+#addr-wrap:focus-within {
+  background: var(--addr-focus-bg);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(26,115,232,0.18);
+}
 
-  #new-tab-btn {
-    width: 28px; height: 28px;
-    border: none;
-    background: none;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 18px;
-    color: var(--text-secondary);
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 4px 4px;
-    flex-shrink: 0;
-    transition: background 0.1s;
-  }
-  #new-tab-btn:hover { background: var(--btn-hover); }
+#sec-icon {
+  font-size: 12px;
+  margin-right: 5px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+  line-height: 1;
+}
+#addr-wrap:focus-within #sec-icon { color: var(--accent); }
 
-  /* ── Navigation Bar ─────────────────────────────────── */
-  #nav-bar {
-    background: var(--nav-bg);
-    display: flex;
-    align-items: center;
-    padding: 6px 8px;
-    gap: 4px;
-    border-bottom: 1px solid var(--nav-border);
-  }
+#addr-input {
+  flex: 1;
+  border: none; outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: var(--text);
+  min-width: 0;
+  font-family: inherit;
+}
+#addr-input::placeholder { color: var(--text-dim); }
 
-  .nav-btn {
-    width: 34px; height: 34px;
-    border: none;
-    background: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-secondary);
-    transition: background 0.1s, color 0.1s;
-    flex-shrink: 0;
-  }
-  .nav-btn:hover:not(:disabled) { background: var(--btn-hover); color: var(--text-primary); }
-  .nav-btn:active:not(:disabled) { background: var(--btn-active); }
-  .nav-btn:disabled { opacity: 0.35; cursor: default; }
-  .nav-btn svg { width: 18px; height: 18px; fill: currentColor; }
+#stop-btn, #bk-btn {
+  flex-shrink: 0;
+  background: none; border: none;
+  cursor: pointer;
+  color: var(--text-dim);
+  padding: 3px;
+  border-radius: 50%;
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s, color 0.1s;
+}
+#stop-btn:hover, #bk-btn:hover { background: var(--btn-hover); color: var(--text); }
+#stop-btn svg, #bk-btn svg { width: 15px; height: 15px; fill: currentColor; }
+#bk-btn.bookmarked svg { fill: #f9ab00; }
+#stop-btn { display: none; }
 
-  #address-bar-container {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    background: var(--address-bg);
-    border: 2px solid transparent;
-    border-radius: 24px;
-    padding: 0 12px;
-    height: 36px;
-    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-    cursor: text;
-  }
-  #address-bar-container:focus-within {
-    background: var(--address-focus);
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(26,115,232,0.15);
-  }
+/* ── Bookmarks Bar ───────────────────────────────────────────── */
+#bk-bar {
+  background: var(--bk-bar);
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 1px;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--nav-border);
+  scrollbar-width: none;
+  height: 30px;
+  flex-shrink: 0;
+  transition: background 0.3s, border-color 0.3s;
+}
+#bk-bar::-webkit-scrollbar { display: none; }
 
-  #security-icon {
-    font-size: 13px;
-    margin-right: 6px;
-    flex-shrink: 0;
-    color: var(--text-secondary);
-  }
+.bk-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text);
+  white-space: nowrap;
+  border: none; background: none;
+  transition: background 0.1s;
+  font-family: inherit;
+  height: 26px;
+}
+.bk-item:hover { background: var(--btn-hover); }
 
-  #address-input {
-    flex: 1;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 14px;
-    color: var(--text-primary);
-    min-width: 0;
-  }
-  #address-input::placeholder { color: var(--text-secondary); }
+/* ── Content Area ────────────────────────────────────────────── */
+#content-area {
+  flex: 1;
+  position: relative;
+  background: #fff;
+  overflow: hidden;
+}
+body.dark #content-area { background: #1e1e1e; }
 
-  #address-bar-container:focus-within #security-icon { color: var(--accent); }
+.tab-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%; height: 100%;
+  border: none;
+  display: none;
+  background: #fff;
+  transform-origin: 0 0;
+}
+.tab-iframe.active { display: block; }
 
-  #refresh-stop-btn, #bookmark-btn {
-    flex-shrink: 0;
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--text-secondary);
-    padding: 4px;
-    border-radius: 50%;
-    width: 26px; height: 26px;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.1s, color 0.1s;
-  }
-  #refresh-stop-btn:hover, #bookmark-btn:hover { background: var(--btn-hover); color: var(--text-primary); }
-  #refresh-stop-btn svg, #bookmark-btn svg { width: 15px; height: 15px; fill: currentColor; }
-  #bookmark-btn.bookmarked { color: #f9ab00; }
+/* ── Loading Bar ─────────────────────────────────────────────── */
+#loading-bar {
+  position: absolute;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #1a73e8, #4fc3f7, #1a73e8);
+  background-size: 200% 100%;
+  width: 0%;
+  z-index: 200;
+  border-radius: 0 2px 2px 0;
+  opacity: 0;
+  transition: width 0.25s ease-out, opacity 0.35s;
+  animation: shimmer 1.5s linear infinite;
+  animation-play-state: paused;
+}
+#loading-bar.loading {
+  opacity: 1;
+  animation-play-state: running;
+}
+@keyframes shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
 
-  /* ── Bookmarks Bar ──────────────────────────────────── */
-  #bookmarks-bar {
-    background: var(--bookmark-bar);
-    display: flex;
-    align-items: center;
-    padding: 2px 8px;
-    gap: 2px;
-    overflow-x: auto;
-    border-bottom: 1px solid var(--nav-border);
-    scrollbar-width: none;
-    min-height: 32px;
-  }
-  #bookmarks-bar::-webkit-scrollbar { display: none; }
+/* ── Special Pages (New Tab / Error / History / Settings) ────── */
+.special-page {
+  display: none;
+  position: absolute; inset: 0;
+  overflow-y: auto;
+  z-index: 10;
+}
+.special-page.visible { display: block; }
 
-  .bookmark-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 3px 10px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 12px;
-    color: var(--text-primary);
-    white-space: nowrap;
-    transition: background 0.1s;
-    border: none;
-    background: none;
-    text-decoration: none;
-  }
-  .bookmark-item:hover { background: var(--btn-hover); }
-  .bookmark-item .bk-icon { font-size: 13px; }
+/* New Tab ─────── */
+#nt-page {
+  background: linear-gradient(135deg, #0d1117 0%, #161b27 40%, #0f2847 100%);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+#nt-page.visible { display: flex; }
 
-  /* ── Content Area ───────────────────────────────────── */
-  #content-area {
-    flex: 1;
-    position: relative;
-    background: #ffffff;
-    overflow: hidden;
-  }
+#nt-particles {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.035);
+  animation: rise linear infinite;
+}
+@keyframes rise {
+  0%   { transform: translateY(110%) scale(0.3); opacity: 0; }
+  8%   { opacity: 1; }
+  92%  { opacity: 1; }
+  100% { transform: translateY(-60px) scale(1.1); opacity: 0; }
+}
 
-  #browser-frame {
-    width: 100%; height: 100%;
-    border: none;
-    display: block;
-    background: #fff;
-  }
+#nt-clock {
+  font-size: 80px;
+  font-weight: 200;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: -4px;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+  z-index: 1;
+}
+#nt-date {
+  font-size: 15px;
+  color: rgba(255,255,255,0.45);
+  margin-bottom: 44px;
+  font-weight: 300;
+  position: relative;
+  z-index: 1;
+}
+#nt-search-wrap {
+  position: relative;
+  width: min(580px, 90%);
+  margin-bottom: 44px;
+  z-index: 1;
+}
+#nt-search {
+  width: 100%;
+  padding: 15px 50px 15px 50px;
+  border-radius: 32px;
+  border: none; outline: none;
+  font-size: 16px;
+  background: rgba(255,255,255,0.09);
+  backdrop-filter: blur(24px);
+  color: #fff;
+  font-family: inherit;
+  transition: background 0.2s, box-shadow 0.2s;
+  caret-color: #fff;
+}
+#nt-search::placeholder { color: rgba(255,255,255,0.4); }
+#nt-search:focus {
+  background: rgba(255,255,255,0.14);
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.22), 0 10px 40px rgba(0,0,0,0.35);
+}
+.nt-search-side {
+  position: absolute;
+  top: 50%; transform: translateY(-50%);
+  color: rgba(255,255,255,0.45);
+  pointer-events: none;
+  font-size: 17px;
+}
+#nt-search-icon { left: 17px; }
+#nt-search-submit {
+  right: 10px;
+  pointer-events: all;
+  cursor: pointer;
+  background: var(--accent);
+  border: none;
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  color: #fff;
+  font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+#nt-search-submit:hover { background: var(--accent-dk); }
 
-  /* ── Loading Bar ───────────────────────────────────── */
-  #loading-bar {
-    position: absolute;
-    top: 0; left: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--accent), #4fc3f7);
-    width: 0%;
-    transition: width 0.3s ease, opacity 0.4s;
-    z-index: 100;
-    border-radius: 0 2px 2px 0;
-    opacity: 0;
-  }
-  #loading-bar.loading { opacity: 1; }
+#nt-tiles {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 720px;
+  position: relative;
+  z-index: 1;
+}
+.nt-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 14px;
+  border-radius: 16px;
+  min-width: 80px;
+  border: none; background: none;
+  color: rgba(255,255,255,0.8);
+  font-family: inherit;
+  transition: background 0.15s;
+}
+.nt-tile:hover { background: rgba(255,255,255,0.09); }
+.nt-tile-icon {
+  width: 54px; height: 54px;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(12px);
+  transition: transform 0.15s, background 0.15s;
+}
+.nt-tile:hover .nt-tile-icon { transform: scale(1.1); background: rgba(255,255,255,0.12); }
+.nt-tile span { font-size: 11.5px; max-width: 76px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* ── Error Page ─────────────────────────────────────── */
-  #error-page {
-    display: none;
-    position: absolute; inset: 0;
-    background: #ffffff;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-family: inherit;
-    padding: 40px;
-    text-align: center;
-  }
+/* Error Page ─── */
+#error-page {
+  background: var(--nav-bg);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 40px;
+  text-align: center;
+  transition: background 0.3s;
+}
+#error-page.visible { display: flex; }
+.err-emoji { font-size: 68px; margin-bottom: 18px; }
+.err-head { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 10px; }
+.err-sub { font-size: 14px; color: var(--text-dim); max-width: 460px; line-height: 1.65; }
+.err-actions { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; justify-content: center; }
+.err-btn {
+  padding: 9px 22px; border-radius: 4px;
+  font-size: 14px; cursor: pointer; border: none;
+  font-family: inherit;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.err-btn.primary { background: var(--accent); color: #fff; }
+.err-btn.primary:hover { background: var(--accent-dk); box-shadow: 0 2px 10px rgba(26,115,232,0.4); }
+.err-btn.secondary { background: var(--addr-bg); color: var(--text); }
+.err-btn.secondary:hover { background: var(--btn-hover); }
 
-  #error-page.visible { display: flex; }
+/* History Page ─ */
+#history-page {
+  background: var(--nav-bg);
+  padding: 32px 40px;
+  transition: background 0.3s;
+  overflow-y: auto;
+  height: 100%;
+}
+#history-page.visible { display: block; }
+.hp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24px;
+}
+.hp-title { font-size: 22px; font-weight: 600; color: var(--text); }
+.hp-clear {
+  padding: 7px 16px; border-radius: 4px;
+  font-size: 13px; cursor: pointer; border: none;
+  background: var(--addr-bg); color: var(--text-dim);
+  font-family: inherit;
+  transition: background 0.1s;
+}
+.hp-clear:hover { background: #e8eaed; }
+body.dark .hp-clear:hover { background: #3c3d3f; }
+.hist-group-label {
+  font-size: 11px; font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase; letter-spacing: 0.8px;
+  padding: 12px 0 4px;
+  border-bottom: 1px solid var(--nav-border);
+  margin-bottom: 2px;
+}
+.hist-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.hist-item:hover { background: var(--btn-hover); }
+.hist-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.hist-info { flex: 1; min-width: 0; }
+.hist-title { font-size: 13px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hist-url { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hist-time { font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
+.hist-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-dim); font-size: 16px; padding: 2px 6px;
+  border-radius: 4px; opacity: 0;
+  transition: opacity 0.1s, background 0.1s;
+}
+.hist-item:hover .hist-del { opacity: 1; }
+.hist-del:hover { background: var(--btn-hover); color: var(--text); }
+.hist-empty { text-align: center; color: var(--text-dim); padding: 48px 0; font-size: 15px; }
 
-  .error-icon { font-size: 64px; margin-bottom: 20px; opacity: 0.3; }
-  .error-title { font-size: 22px; font-weight: 600; color: #202124; margin-bottom: 10px; }
-  .error-msg { font-size: 14px; color: #5f6368; max-width: 440px; line-height: 1.6; }
-  .error-actions { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; justify-content: center; }
-  .error-btn {
-    padding: 9px 20px;
-    border-radius: 4px;
-    font-size: 14px;
-    cursor: pointer;
-    border: none;
-    transition: background 0.15s, box-shadow 0.15s;
-    font-family: inherit;
-  }
-  .error-btn.primary { background: var(--accent); color: #fff; }
-  .error-btn.primary:hover { background: var(--accent-dark); box-shadow: 0 2px 8px rgba(26,115,232,0.4); }
-  .error-btn.secondary { background: var(--address-bg); color: var(--text-primary); }
-  .error-btn.secondary:hover { background: #e8eaed; }
+/* Settings Page  */
+#settings-page {
+  background: var(--nav-bg);
+  padding: 32px 40px;
+  transition: background 0.3s;
+  overflow-y: auto;
+  height: 100%;
+}
+#settings-page.visible { display: block; }
+.sp-title { font-size: 22px; font-weight: 600; color: var(--text); margin-bottom: 24px; }
+.sp-section { margin-bottom: 28px; }
+.sp-section-label { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+.sp-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--addr-bg);
+  margin-bottom: 6px;
+}
+.sp-row-label { font-size: 14px; color: var(--text); }
+.sp-row-desc { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+.sp-toggle {
+  position: relative;
+  width: 40px; height: 22px;
+  cursor: pointer;
+}
+.sp-toggle input { opacity: 0; width: 0; height: 0; }
+.sp-toggle-track {
+  position: absolute; inset: 0;
+  background: #ccc; border-radius: 11px;
+  transition: background 0.2s;
+}
+.sp-toggle input:checked + .sp-toggle-track { background: var(--accent); }
+.sp-toggle-thumb {
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 16px; height: 16px;
+  background: #fff; border-radius: 50%;
+  transition: left 0.2s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+}
+.sp-toggle input:checked ~ .sp-toggle-thumb { left: 21px; }
+.sp-select {
+  background: var(--addr-bg); border: 1px solid var(--nav-border);
+  border-radius: 6px; padding: 6px 10px;
+  font-size: 13px; color: var(--text);
+  font-family: inherit; cursor: pointer;
+  outline: none;
+}
+.sp-select:focus { border-color: var(--accent); }
 
-  /* ── New Tab Page ───────────────────────────────────── */
-  #new-tab-page {
-    display: none;
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-  }
-  #new-tab-page.visible { display: flex; }
+/* ── Find Bar ────────────────────────────────────────────────── */
+#find-bar {
+  position: absolute;
+  top: 0; right: 16px;
+  background: var(--nav-bg);
+  border: 1px solid var(--nav-border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  padding: 7px 10px;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  z-index: 100;
+  font-size: 13px;
+  transition: background 0.3s;
+}
+#find-bar.visible { display: flex; }
+#find-input {
+  border: 1px solid var(--nav-border); border-radius: 4px;
+  padding: 4px 8px; outline: none;
+  font-size: 13px; width: 200px;
+  background: var(--addr-bg); color: var(--text);
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+#find-input:focus { border-color: var(--accent); }
+#find-count { color: var(--text-dim); font-size: 12px; white-space: nowrap; min-width: 50px; }
+.find-btn {
+  border: none; background: none; cursor: pointer;
+  padding: 4px 6px; border-radius: 4px;
+  color: var(--text-dim); font-size: 14px;
+  transition: background 0.1s;
+}
+.find-btn:hover { background: var(--btn-hover); }
+#find-close {
+  border: none; background: none; cursor: pointer;
+  color: var(--text-dim); padding: 3px; border-radius: 50%;
+  font-size: 16px; line-height: 1;
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s; margin-left: 2px;
+}
+#find-close:hover { background: var(--btn-hover); }
 
-  #nt-bg-particles {
-    position: absolute; inset: 0;
-    overflow: hidden;
-    pointer-events: none;
-  }
+/* ── Menu Panel ──────────────────────────────────────────────── */
+#menu-panel {
+  position: fixed;
+  background: var(--nav-bg);
+  border: 1px solid var(--nav-border);
+  border-radius: 10px;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.18);
+  z-index: 9999;
+  display: none;
+  width: 276px;
+  padding: 6px 0;
+  transition: background 0.3s;
+}
+#menu-panel.visible { display: block; }
+.mp-section { border-bottom: 1px solid var(--nav-border); padding: 3px 0; }
+.mp-section:last-child { border-bottom: none; }
+.mp-zoom {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 7px 14px;
+}
+.mp-zoom-label { font-size: 13px; color: var(--text); }
+.mp-zoom-ctrls { display: flex; align-items: center; gap: 4px; }
+.mp-zoom-btn {
+  border: 1px solid var(--nav-border); background: none;
+  border-radius: 4px; width: 30px; height: 26px;
+  cursor: pointer; font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text); transition: background 0.1s;
+}
+.mp-zoom-btn:hover { background: var(--btn-hover); }
+#zoom-display { font-size: 13px; min-width: 42px; text-align: center; color: var(--text); }
+.mp-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 16px;
+  font-size: 13px; color: var(--text);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.mp-item:hover { background: var(--btn-hover); }
+.mp-icon { width: 20px; text-align: center; font-size: 15px; flex-shrink: 0; }
+.mp-shortcut { margin-left: auto; color: var(--text-dim); font-size: 11px; }
 
-  .particle {
-    position: absolute;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.04);
-    animation: float linear infinite;
-  }
+/* ── Autocomplete ────────────────────────────────────────────── */
+#autocomplete {
+  position: fixed;
+  background: var(--nav-bg);
+  border: 1px solid var(--nav-border);
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.14);
+  z-index: 9999;
+  display: none;
+  overflow: hidden;
+  transition: background 0.3s;
+}
+#autocomplete.visible { display: block; }
+.ac-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer; font-size: 13px;
+  color: var(--text);
+  transition: background 0.08s;
+}
+.ac-row:hover, .ac-row.sel { background: var(--addr-bg); }
+.ac-ico { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.ac-text { flex: 1; min-width: 0; }
+.ac-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ac-url { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  @keyframes float {
-    0% { transform: translateY(100vh) scale(0); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(-100px) scale(1); opacity: 0; }
-  }
+/* ── Context Menu ────────────────────────────────────────────── */
+#ctx-menu {
+  position: fixed;
+  background: var(--nav-bg);
+  border: 1px solid var(--nav-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.16);
+  z-index: 9999;
+  display: none;
+  min-width: 196px;
+  padding: 4px 0;
+  transition: background 0.3s;
+}
+#ctx-menu.visible { display: block; }
+.ctx-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 14px;
+  font-size: 13px; color: var(--text);
+  cursor: pointer;
+  transition: background 0.08s;
+}
+.ctx-item:hover { background: var(--btn-hover); }
+.ctx-icon { width: 18px; text-align: center; color: var(--text-dim); }
+.ctx-sep { height: 1px; background: var(--nav-border); margin: 3px 0; }
 
-  #nt-clock {
-    font-size: 72px;
-    font-weight: 200;
-    color: rgba(255,255,255,0.92);
-    letter-spacing: -3px;
-    margin-bottom: 6px;
-    font-variant-numeric: tabular-nums;
-  }
+/* ── Status Bar ──────────────────────────────────────────────── */
+#status-bar {
+  background: var(--status);
+  padding: 0 10px;
+  font-size: 11px;
+  color: var(--text-dim);
+  height: 20px;
+  display: flex; align-items: center;
+  border-top: 1px solid var(--nav-border);
+  overflow: hidden;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.3s;
+}
 
-  #nt-date {
-    font-size: 16px;
-    color: rgba(255,255,255,0.5);
-    margin-bottom: 44px;
-    font-weight: 300;
-  }
+/* ── Toast ───────────────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: #323232;
+  color: #fff;
+  padding: 9px 18px;
+  border-radius: 6px;
+  font-size: 13px;
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 99999;
+  transition: opacity 0.22s, transform 0.22s;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  #nt-search-container {
-    position: relative;
-    width: min(560px, 90%);
-    margin-bottom: 48px;
-  }
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 7px; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.18); border-radius: 4px; }
+body.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); }
 
-  #nt-search {
-    width: 100%;
-    padding: 16px 52px 16px 52px;
-    border-radius: 30px;
-    border: none;
-    outline: none;
-    font-size: 16px;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(20px);
-    color: #fff;
-    transition: background 0.2s, box-shadow 0.2s;
-    font-family: inherit;
-  }
-  #nt-search::placeholder { color: rgba(255,255,255,0.45); }
-  #nt-search:focus {
-    background: rgba(255,255,255,0.16);
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.25), 0 8px 32px rgba(0,0,0,0.3);
-  }
-
-  #nt-search-icon {
-    position: absolute;
-    left: 18px; top: 50%;
-    transform: translateY(-50%);
-    color: rgba(255,255,255,0.5);
-    font-size: 18px;
-    pointer-events: none;
-  }
-
-  #nt-search-submit {
-    position: absolute;
-    right: 12px; top: 50%;
-    transform: translateY(-50%);
-    background: var(--accent);
-    border: none;
-    border-radius: 50%;
-    width: 32px; height: 32px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.15s;
-    color: white;
-    font-size: 16px;
-  }
-  #nt-search-submit:hover { background: var(--accent-dark); }
-
-  #nt-shortcuts {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    justify-content: center;
-    max-width: 700px;
-  }
-
-  .nt-shortcut {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    padding: 12px;
-    border-radius: 14px;
-    transition: background 0.15s;
-    min-width: 76px;
-    border: none;
-    background: none;
-    color: rgba(255,255,255,0.85);
-  }
-  .nt-shortcut:hover { background: rgba(255,255,255,0.1); }
-  .nt-shortcut-icon {
-    width: 52px; height: 52px;
-    border-radius: 16px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px;
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(10px);
-    transition: transform 0.15s;
-  }
-  .nt-shortcut:hover .nt-shortcut-icon { transform: scale(1.08); }
-  .nt-shortcut span { font-size: 12px; max-width: 72px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  /* ── Status Bar ─────────────────────────────────────── */
-  #status-bar {
-    background: var(--status-bar);
-    padding: 2px 10px;
-    font-size: 11px;
-    color: var(--text-secondary);
-    height: 20px;
-    display: flex;
-    align-items: center;
-    border-top: 1px solid var(--nav-border);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* ── Autocomplete Dropdown ──────────────────────────── */
-  #autocomplete {
-    position: fixed;
-    background: #fff;
-    border: 1px solid #dadce0;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    z-index: 9999;
-    overflow: hidden;
-    display: none;
-    min-width: 300px;
-  }
-  #autocomplete.visible { display: block; }
-
-  .ac-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 16px;
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--text-primary);
-    transition: background 0.1s;
-  }
-  .ac-item:hover, .ac-item.selected { background: var(--address-bg); }
-  .ac-item-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; color: var(--text-secondary); }
-  .ac-item-text { flex: 1; min-width: 0; }
-  .ac-item-url { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .ac-item-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-  /* ── Context Menu ───────────────────────────────────── */
-  #context-menu {
-    position: fixed;
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-    z-index: 9999;
-    overflow: hidden;
-    display: none;
-    min-width: 200px;
-    padding: 4px 0;
-  }
-  #context-menu.visible { display: block; }
-
-  .cm-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 8px 16px;
-    font-size: 13px;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: background 0.1s;
-  }
-  .cm-item:hover { background: var(--address-bg); }
-  .cm-item .cm-icon { width: 18px; text-align: center; color: var(--text-secondary); }
-  .cm-separator { height: 1px; background: #e0e0e0; margin: 4px 0; }
-
-  /* ── Find Bar ───────────────────────────────────────── */
-  #find-bar {
-    position: absolute;
-    top: 0; right: 0;
-    background: #fff;
-    border: 1px solid #dadce0;
-    border-radius: 0 0 0 8px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
-    padding: 6px 10px;
-    display: none;
-    align-items: center;
-    gap: 6px;
-    z-index: 50;
-    font-size: 13px;
-  }
-  #find-bar.visible { display: flex; }
-  #find-input {
-    border: 1px solid #dadce0;
-    border-radius: 4px;
-    padding: 4px 8px;
-    outline: none;
-    font-size: 13px;
-    width: 200px;
-    font-family: inherit;
-  }
-  #find-input:focus { border-color: var(--accent); }
-  #find-count { color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
-  .find-nav-btn {
-    border: none; background: none; cursor: pointer;
-    padding: 4px 6px; border-radius: 4px;
-    color: var(--text-secondary); font-size: 14px;
-    transition: background 0.1s;
-  }
-  .find-nav-btn:hover { background: var(--btn-hover); }
-  #find-close {
-    border: none; background: none; cursor: pointer;
-    color: var(--text-secondary); padding: 4px; border-radius: 50%; font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    width: 24px; height: 24px;
-    transition: background 0.1s;
-    margin-left: 4px;
-  }
-  #find-close:hover { background: var(--btn-hover); }
-
-  /* ── Menu Panel ─────────────────────────────────────── */
-  #menu-panel {
-    position: fixed;
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
-    z-index: 9999;
-    overflow: hidden;
-    display: none;
-    width: 280px;
-    padding: 8px 0;
-  }
-  #menu-panel.visible { display: block; }
-  .mp-section { padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
-  .mp-section:last-child { border-bottom: none; }
-  .mp-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 9px 16px;
-    font-size: 13px;
-    color: var(--text-primary);
-    cursor: pointer;
-    transition: background 0.1s;
-  }
-  .mp-item:hover { background: var(--address-bg); }
-  .mp-item .mp-icon { width: 20px; text-align: center; font-size: 16px; }
-  .mp-item .mp-shortcut { margin-left: auto; color: var(--text-secondary); font-size: 11px; }
-  .mp-zoom {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 12px;
-  }
-  .mp-zoom-label { font-size: 13px; color: var(--text-primary); }
-  .mp-zoom-controls { display: flex; align-items: center; gap: 4px; }
-  .mp-zoom-btn {
-    border: 1px solid #dadce0;
-    background: none;
-    border-radius: 4px;
-    width: 30px; height: 26px;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex; align-items: center; justify-content: center;
-    transition: background 0.1s;
-    color: var(--text-primary);
-  }
-  .mp-zoom-btn:hover { background: var(--btn-hover); }
-  #zoom-level { font-size: 13px; min-width: 38px; text-align: center; color: var(--text-primary); }
-
-  /* ── Toast Notification ─────────────────────────────── */
-  #toast {
-    position: fixed;
-    bottom: 32px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: #323232;
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 6px;
-    font-size: 13px;
-    opacity: 0;
-    transition: opacity 0.25s, transform 0.25s;
-    z-index: 99999;
-    pointer-events: none;
-    white-space: nowrap;
-  }
-  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* ── Scrollbar ──────────────────────────────────────── */
-  ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
-
-  /* ── Responsive ─────────────────────────────────────── */
-  @media (max-width: 600px) {
-    body { align-items: flex-start; }
-    #browser { width: 100vw; height: 100vh; border-radius: 0; }
-    #nt-clock { font-size: 52px; }
-    #bookmarks-bar { display: none; }
-  }
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  body { align-items: stretch; justify-content: stretch; }
+  #browser { width: 100vw; height: 100vh; border-radius: 0; }
+  #nt-clock { font-size: 54px; letter-spacing: -2px; }
+  #bk-bar { display: none; }
+  .tab { max-width: 140px; }
+}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════ BROWSER SHELL ═══════════════════════ -->
 <div id="browser">
 
-  <!-- Title Bar + Tabs -->
+  <!-- ── Title Bar ──────────────────────────────────────────── -->
   <div id="title-bar">
     <div id="window-controls">
       <button class="wc-btn" id="wc-close" title="Close"></button>
       <button class="wc-btn" id="wc-min"   title="Minimize"></button>
       <button class="wc-btn" id="wc-max"   title="Maximize"></button>
     </div>
-    <div id="tab-bar"><!-- tabs injected here --></div>
+    <div id="tab-bar"></div>
     <button id="new-tab-btn" title="New tab">+</button>
   </div>
 
-  <!-- Navigation Bar -->
+  <!-- ── Navigation Bar ─────────────────────────────────────── -->
   <div id="nav-bar">
-    <button class="nav-btn" id="back-btn" title="Go back" disabled>
+    <button class="nav-btn" id="back-btn" disabled title="Go back (Alt+←)">
       <svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
     </button>
-    <button class="nav-btn" id="forward-btn" title="Go forward" disabled>
+    <button class="nav-btn" id="fwd-btn" disabled title="Go forward (Alt+→)">
       <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg>
     </button>
-    <button class="nav-btn" id="reload-btn" title="Reload page">
+    <button class="nav-btn" id="reload-btn" title="Reload (F5)">
       <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
     </button>
-    <button class="nav-btn" id="home-btn" title="Go home">
+    <button class="nav-btn" id="home-btn" title="New tab">
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
     </button>
 
-    <!-- Address Bar -->
-    <div id="address-bar-container">
-      <span id="security-icon">🔒</span>
-      <input id="address-input" type="text" autocomplete="off" spellcheck="false"
+    <div id="addr-wrap">
+      <span id="sec-icon">🔒</span>
+      <input id="addr-input" type="text" autocomplete="off" spellcheck="false"
              placeholder="Search with Google or enter a URL">
-      <button id="refresh-stop-btn" title="Reload" style="display:none">
-        <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      <button id="stop-btn" title="Stop loading">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
       </button>
-      <button id="bookmark-btn" title="Bookmark this page">
-        <svg id="bookmark-icon" viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+      <button id="bk-btn" title="Bookmark (Ctrl+D)">
+        <svg id="bk-icon" viewBox="0 0 24 24"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
       </button>
     </div>
 
-    <button class="nav-btn" id="menu-btn" title="Customize and control">
+    <button class="nav-btn" id="menu-btn" title="Menu">
       <svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
     </button>
   </div>
 
-  <!-- Bookmarks Bar -->
-  <div id="bookmarks-bar">
-    <button class="bookmark-item" data-url="https://www.google.com" data-title="Google">
-      <span class="bk-icon">🔍</span> Google
-    </button>
-    <button class="bookmark-item" data-url="https://github.com" data-title="GitHub">
-      <span class="bk-icon">🐙</span> GitHub
-    </button>
-    <button class="bookmark-item" data-url="https://www.wikipedia.org" data-title="Wikipedia">
-      <span class="bk-icon">📖</span> Wikipedia
-    </button>
-    <button class="bookmark-item" data-url="https://www.youtube.com" data-title="YouTube">
-      <span class="bk-icon">▶️</span> YouTube
-    </button>
-    <button class="bookmark-item" data-url="https://news.ycombinator.com" data-title="Hacker News">
-      <span class="bk-icon">🔶</span> HN
-    </button>
-    <button class="bookmark-item" data-url="https://www.reddit.com" data-title="Reddit">
-      <span class="bk-icon">🤖</span> Reddit
-    </button>
-    <button class="bookmark-item" data-url="https://en.wikipedia.org/wiki/Web_browser" data-title="Web Browser">
-      <span class="bk-icon">🌐</span> Browser Wiki
-    </button>
+  <!-- ── Bookmarks Bar ───────────────────────────────────────── -->
+  <div id="bk-bar">
+    <button class="bk-item" data-url="https://www.google.com">🔍 Google</button>
+    <button class="bk-item" data-url="https://github.com">🐙 GitHub</button>
+    <button class="bk-item" data-url="https://en.wikipedia.org">📖 Wikipedia</button>
+    <button class="bk-item" data-url="https://www.youtube.com">▶️ YouTube</button>
+    <button class="bk-item" data-url="https://news.ycombinator.com">🔶 Hacker News</button>
+    <button class="bk-item" data-url="https://www.reddit.com">🤖 Reddit</button>
+    <button class="bk-item" data-url="https://developer.mozilla.org">📰 MDN</button>
+    <button class="bk-item" data-url="https://stackoverflow.com">🌩️ Stack Overflow</button>
   </div>
 
-  <!-- Content Area -->
+  <!-- ── Content Area ────────────────────────────────────────── -->
   <div id="content-area">
     <div id="loading-bar"></div>
 
     <!-- New Tab Page -->
-    <div id="new-tab-page">
-      <div id="nt-bg-particles"></div>
+    <div id="nt-page">
+      <div id="nt-particles"></div>
       <div id="nt-clock">00:00</div>
-      <div id="nt-date">Loading…</div>
-      <div id="nt-search-container">
-        <span id="nt-search-icon">🔍</span>
-        <input id="nt-search" type="text" placeholder="Search the web or enter a URL" autocomplete="off">
-        <button id="nt-search-submit">→</button>
+      <div id="nt-date"></div>
+      <div id="nt-search-wrap">
+        <span class="nt-search-side" id="nt-search-icon">🔍</span>
+        <input id="nt-search" type="text" placeholder="Search or enter a URL" autocomplete="off">
+        <button class="nt-search-side" id="nt-search-submit">→</button>
       </div>
-      <div id="nt-shortcuts">
-        <button class="nt-shortcut" data-url="https://www.google.com">
-          <div class="nt-shortcut-icon">🔍</div><span>Google</span>
-        </button>
-        <button class="nt-shortcut" data-url="https://github.com">
-          <div class="nt-shortcut-icon">🐙</div><span>GitHub</span>
-        </button>
-        <button class="nt-shortcut" data-url="https://www.youtube.com">
-          <div class="nt-shortcut-icon">▶️</div><span>YouTube</span>
-        </button>
-        <button class="nt-shortcut" data-url="https://en.wikipedia.org">
-          <div class="nt-shortcut-icon">📖</div><span>Wikipedia</span>
-        </button>
-        <button class="nt-shortcut" data-url="https://news.ycombinator.com">
-          <div class="nt-shortcut-icon">🔶</div><span>Hacker News</span>
-        </button>
-        <button class="nt-shortcut" data-url="https://www.reddit.com">
-          <div class="nt-shortcut-icon">🤖</div><span>Reddit</span>
-        </button>
-        <button class="nt-shortcut" data-url="https://www.openstreetmap.org">
-          <div class="nt-shortcut-icon">🗺️</div><span>Maps</span>
-        </button>
-        <button class="nt-shortcut" data-url="https://arxiv.org">
-          <div class="nt-shortcut-icon">📄</div><span>arXiv</span>
-        </button>
+      <div id="nt-tiles">
+        <button class="nt-tile" data-url="https://www.google.com"><div class="nt-tile-icon">🔍</div><span>Google</span></button>
+        <button class="nt-tile" data-url="https://github.com"><div class="nt-tile-icon">🐙</div><span>GitHub</span></button>
+        <button class="nt-tile" data-url="https://www.youtube.com"><div class="nt-tile-icon">▶️</div><span>YouTube</span></button>
+        <button class="nt-tile" data-url="https://en.wikipedia.org"><div class="nt-tile-icon">📖</div><span>Wikipedia</span></button>
+        <button class="nt-tile" data-url="https://news.ycombinator.com"><div class="nt-tile-icon">🔶</div><span>Hacker News</span></button>
+        <button class="nt-tile" data-url="https://www.reddit.com"><div class="nt-tile-icon">🤖</div><span>Reddit</span></button>
+        <button class="nt-tile" data-url="https://www.openstreetmap.org"><div class="nt-tile-icon">🗺️</div><span>Maps</span></button>
+        <button class="nt-tile" data-url="https://arxiv.org"><div class="nt-tile-icon">📄</div><span>arXiv</span></button>
       </div>
     </div>
 
-    <!-- Browser iframe -->
-    <iframe id="browser-frame" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" title="Browser content"></iframe>
-
     <!-- Error Page -->
-    <div id="error-page">
-      <div class="error-icon" id="error-icon">🚫</div>
-      <div class="error-title" id="error-title">This site can't be reached</div>
-      <div class="error-msg" id="error-msg">The page could not be loaded. This can happen because the site blocked embedding in iframes, or the URL is invalid.</div>
-      <div class="error-actions">
-        <button class="error-btn primary" id="error-open-new">Open in new tab</button>
-        <button class="error-btn secondary" id="error-go-home">Go home</button>
+    <div id="error-page" class="special-page">
+      <div class="err-emoji" id="err-emoji">🚫</div>
+      <div class="err-head"  id="err-head">This site can't be reached</div>
+      <div class="err-sub"   id="err-sub">The page refused to load. Many sites block embedding for security reasons (X-Frame-Options / CSP). Click "Open in new tab" to view it directly.</div>
+      <div class="err-actions">
+        <button class="err-btn primary"   id="err-open">Open in new tab</button>
+        <button class="err-btn secondary" id="err-home">Go home</button>
+        <button class="err-btn secondary" id="err-retry">Retry</button>
+      </div>
+    </div>
+
+    <!-- History Page -->
+    <div id="history-page" class="special-page">
+      <div class="hp-header">
+        <div class="hp-title">History</div>
+        <button class="hp-clear" id="hp-clear">Clear all</button>
+      </div>
+      <div id="hp-list"></div>
+    </div>
+
+    <!-- Settings Page -->
+    <div id="settings-page" class="special-page">
+      <div class="sp-title">Settings</div>
+      <div class="sp-section">
+        <div class="sp-section-label">Appearance</div>
+        <div class="sp-row">
+          <div><div class="sp-row-label">Dark mode</div><div class="sp-row-desc">Switch between light and dark theme</div></div>
+          <label class="sp-toggle">
+            <input type="checkbox" id="set-dark">
+            <div class="sp-toggle-track"></div>
+            <div class="sp-toggle-thumb"></div>
+          </label>
+        </div>
+        <div class="sp-row">
+          <div><div class="sp-row-label">Show bookmarks bar</div></div>
+          <label class="sp-toggle">
+            <input type="checkbox" id="set-bkbar" checked>
+            <div class="sp-toggle-track"></div>
+            <div class="sp-toggle-thumb"></div>
+          </label>
+        </div>
+      </div>
+      <div class="sp-section">
+        <div class="sp-section-label">Search</div>
+        <div class="sp-row">
+          <div class="sp-row-label">Default search engine</div>
+          <select class="sp-select" id="set-engine">
+            <option value="https://www.google.com/search?q=">Google</option>
+            <option value="https://www.bing.com/search?q=">Bing</option>
+            <option value="https://duckduckgo.com/?q=">DuckDuckGo</option>
+            <option value="https://search.brave.com/search?q=">Brave</option>
+          </select>
+        </div>
+      </div>
+      <div class="sp-section">
+        <div class="sp-section-label">Privacy</div>
+        <div class="sp-row">
+          <div><div class="sp-row-label">Save history</div><div class="sp-row-desc">Remember visited pages in this session</div></div>
+          <label class="sp-toggle">
+            <input type="checkbox" id="set-history" checked>
+            <div class="sp-toggle-track"></div>
+            <div class="sp-toggle-thumb"></div>
+          </label>
+        </div>
       </div>
     </div>
 
     <!-- Find Bar -->
     <div id="find-bar">
-      <input id="find-input" placeholder="Find…" type="text">
+      <input id="find-input" type="text" placeholder="Find…">
       <span id="find-count"></span>
-      <button class="find-nav-btn" id="find-prev" title="Previous">▲</button>
-      <button class="find-nav-btn" id="find-next" title="Next">▼</button>
+      <button class="find-btn" id="find-prev" title="Previous (Shift+Enter)">▲</button>
+      <button class="find-btn" id="find-next" title="Next (Enter)">▼</button>
       <button id="find-close">×</button>
     </div>
   </div>
 
-  <!-- Status Bar -->
   <div id="status-bar"></div>
 </div>
 
-<!-- Autocomplete -->
+<!-- Overlays (outside #browser so z-index stacks correctly) -->
 <div id="autocomplete"></div>
-
-<!-- Context Menu -->
-<div id="context-menu">
-  <div class="mp-section">
-    <div class="cm-item" id="cm-back"><span class="cm-icon">←</span> Back</div>
-    <div class="cm-item" id="cm-forward"><span class="cm-icon">→</span> Forward</div>
-    <div class="cm-item" id="cm-reload"><span class="cm-icon">↻</span> Reload</div>
-  </div>
-  <div class="mp-section">
-    <div class="cm-item" id="cm-new-tab"><span class="cm-icon">+</span> New Tab</div>
-    <div class="cm-item" id="cm-open-new"><span class="cm-icon">↗</span> Open in New Window</div>
-  </div>
-  <div class="mp-section">
-    <div class="cm-item" id="cm-save"><span class="cm-icon">💾</span> Save Page As…</div>
-    <div class="cm-item" id="cm-print"><span class="cm-icon">🖨</span> Print…</div>
-  </div>
+<div id="ctx-menu">
+  <div class="ctx-item" id="ctx-back"><span class="ctx-icon">←</span>Back</div>
+  <div class="ctx-item" id="ctx-fwd"><span class="ctx-icon">→</span>Forward</div>
+  <div class="ctx-item" id="ctx-reload"><span class="ctx-icon">↻</span>Reload</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-newtab"><span class="ctx-icon">+</span>New Tab</div>
+  <div class="ctx-item" id="ctx-openwin"><span class="ctx-icon">↗</span>Open in New Window</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" id="ctx-print"><span class="ctx-icon">🖨</span>Print…</div>
 </div>
-
-<!-- Menu Panel -->
 <div id="menu-panel">
   <div class="mp-section">
     <div class="mp-zoom">
       <span class="mp-zoom-label">Zoom</span>
-      <div class="mp-zoom-controls">
+      <div class="mp-zoom-ctrls">
         <button class="mp-zoom-btn" id="zoom-out">−</button>
-        <span id="zoom-level">100%</span>
+        <span id="zoom-display">100%</span>
         <button class="mp-zoom-btn" id="zoom-in">+</button>
-        <button class="mp-zoom-btn" id="zoom-reset" title="Reset zoom" style="width:auto;padding:0 8px;font-size:12px">Reset</button>
+        <button class="mp-zoom-btn" id="zoom-reset" style="font-size:11px;width:auto;padding:0 8px">Reset</button>
       </div>
     </div>
   </div>
   <div class="mp-section">
-    <div class="mp-item" id="mp-new-tab"><span class="mp-icon">+</span> New Tab <span class="mp-shortcut">Ctrl+T</span></div>
-    <div class="mp-item" id="mp-find"><span class="mp-icon">🔍</span> Find… <span class="mp-shortcut">Ctrl+F</span></div>
-    <div class="mp-item" id="mp-print"><span class="mp-icon">🖨</span> Print… <span class="mp-shortcut">Ctrl+P</span></div>
+    <div class="mp-item" id="mp-newtab"><span class="mp-icon">+</span>New Tab<span class="mp-shortcut">Ctrl+T</span></div>
+    <div class="mp-item" id="mp-find"><span class="mp-icon">🔍</span>Find…<span class="mp-shortcut">Ctrl+F</span></div>
+    <div class="mp-item" id="mp-print"><span class="mp-icon">🖨</span>Print…<span class="mp-shortcut">Ctrl+P</span></div>
   </div>
   <div class="mp-section">
-    <div class="mp-item" id="mp-bookmark"><span class="mp-icon">⭐</span> Bookmark this page <span class="mp-shortcut">Ctrl+D</span></div>
-    <div class="mp-item" id="mp-history"><span class="mp-icon">🕐</span> History</div>
-    <div class="mp-item" id="mp-downloads"><span class="mp-icon">⬇</span> Downloads</div>
+    <div class="mp-item" id="mp-bookmark"><span class="mp-icon">⭐</span>Bookmark this page<span class="mp-shortcut">Ctrl+D</span></div>
+    <div class="mp-item" id="mp-history"><span class="mp-icon">🕐</span>History<span class="mp-shortcut">Ctrl+H</span></div>
+    <div class="mp-item" id="mp-settings"><span class="mp-icon">⚙</span>Settings</div>
   </div>
   <div class="mp-section">
-    <div class="mp-item" id="mp-settings"><span class="mp-icon">⚙</span> Settings</div>
-    <div class="mp-item" id="mp-about"><span class="mp-icon">ℹ</span> About Chromium</div>
+    <div class="mp-item" id="mp-about"><span class="mp-icon">ℹ</span>About</div>
   </div>
 </div>
-
-<!-- Toast -->
 <div id="toast"></div>
 
-<!-- ════════════════════════ JAVASCRIPT ════════════════════════ -->
 <script>
 (() => {
 'use strict';
 
-// ── State ──────────────────────────────────────────────────────
-const SEARCH_ENGINE = 'https://www.google.com/search?q=';
-const HOME_URL = 'newtab';
-let tabs = [];
-let activeTabId = null;
-let zoomLevel = 100;
-let loadTimer = null;
-let acHistory = [];
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let SEARCH_ENGINE = localStorage.getItem('cfg_engine') || 'https://www.google.com/search?q=';
+let saveHistory   = localStorage.getItem('cfg_history') !== 'false';
+const NEWTAB = '__newtab__';
 
-// Bookmarks stored in localStorage
-let bookmarks = JSON.parse(localStorage.getItem('bk_bookmarks') || '[]');
-let browserHistory = JSON.parse(localStorage.getItem('bk_history') || '[]');
+let tabs        = [];
+let activeId    = null;
+let zoomLevel   = 100;
+let loadInterval = null;
+let loadProgress = 0;
+let currentLoadingTabId = null;
 
-// ── DOM refs ───────────────────────────────────────────────────
-const $tabBar         = document.getElementById('tab-bar');
-const $newTabBtn      = document.getElementById('new-tab-btn');
-const $backBtn        = document.getElementById('back-btn');
-const $forwardBtn     = document.getElementById('forward-btn');
-const $reloadBtn      = document.getElementById('reload-btn');
-const $homeBtn        = document.getElementById('home-btn');
-const $addressInput   = document.getElementById('address-input');
-const $refreshStopBtn = document.getElementById('refresh-stop-btn');
-const $bookmarkBtn    = document.getElementById('bookmark-btn');
-const $menuBtn        = document.getElementById('menu-btn');
-const $frame          = document.getElementById('browser-frame');
-const $loadingBar     = document.getElementById('loading-bar');
-const $newTabPage     = document.getElementById('new-tab-page');
-const $errorPage      = document.getElementById('error-page');
-const $statusBar      = document.getElementById('status-bar');
-const $autocomplete   = document.getElementById('autocomplete');
-const $contextMenu    = document.getElementById('context-menu');
-const $menuPanel      = document.getElementById('menu-panel');
-const $findBar        = document.getElementById('find-bar');
-const $findInput      = document.getElementById('find-input');
-const $findCount      = document.getElementById('find-count');
-const $toast          = document.getElementById('toast');
-const $ntClock        = document.getElementById('nt-clock');
-const $ntDate         = document.getElementById('nt-date');
-const $ntSearch       = document.getElementById('nt-search');
-const $securityIcon   = document.getElementById('security-icon');
-const $errorIcon      = document.getElementById('error-icon');
-const $errorTitle     = document.getElementById('error-title');
-const $errorMsg       = document.getElementById('error-msg');
-const $zoomLevel      = document.getElementById('zoom-level');
+let bookmarks     = safeJSON('bk_bookmarks', []);
+let browserHistory = safeJSON('bk_history', []);
 
-// ── Tab management ─────────────────────────────────────────────
-function createTab(url = HOME_URL, activate = true) {
-  const id = Date.now() + Math.random();
-  const tab = { id, url: HOME_URL, title: 'New Tab', history: [], histIndex: -1, loading: false, favicon: null };
+// ═══════════════════════════════════════════════════
+// DOM
+// ═══════════════════════════════════════════════════
+const $tabBar    = id('tab-bar');
+const $backBtn   = id('back-btn');
+const $fwdBtn    = id('fwd-btn');
+const $reloadBtn = id('reload-btn');
+const $homeBtn   = id('home-btn');
+const $addrWrap  = id('addr-wrap');
+const $addrInput = id('addr-input');
+const $stopBtn   = id('stop-btn');
+const $bkBtn     = id('bk-btn');
+const $menuBtn   = id('menu-btn');
+const $bkBar     = id('bk-bar');
+const $content   = id('content-area');
+const $loadBar   = id('loading-bar');
+const $ntPage    = id('nt-page');
+const $errPage   = id('error-page');
+const $histPage  = id('history-page');
+const $settPage  = id('settings-page');
+const $findBar   = id('find-bar');
+const $findInput = id('find-input');
+const $findCount = id('find-count');
+const $statusBar = id('status-bar');
+const $acBox     = id('autocomplete');
+const $ctxMenu   = id('ctx-menu');
+const $menuPanel = id('menu-panel');
+const $toast     = id('toast');
+const $ntClock   = id('nt-clock');
+const $ntDate    = id('nt-date');
+const $ntSearch  = id('nt-search');
+const $secIcon   = id('sec-icon');
+const $zoomDisp  = id('zoom-display');
+const $errEmoji  = id('err-emoji');
+const $errHead   = id('err-head');
+const $errSub    = id('err-sub');
+
+// ═══════════════════════════════════════════════════
+// SETTINGS LOAD
+// ═══════════════════════════════════════════════════
+function loadSettings() {
+  const dark = localStorage.getItem('cfg_dark') === 'true';
+  const bkbar = localStorage.getItem('cfg_bkbar') !== 'false';
+  document.body.classList.toggle('dark', dark);
+  id('set-dark').checked = dark;
+  $bkBar.style.display = bkbar ? '' : 'none';
+  id('set-bkbar').checked = bkbar;
+  id('set-engine').value = SEARCH_ENGINE;
+  id('set-history').checked = saveHistory;
+}
+
+id('set-dark').addEventListener('change', e => {
+  document.body.classList.toggle('dark', e.target.checked);
+  localStorage.setItem('cfg_dark', e.target.checked);
+});
+id('set-bkbar').addEventListener('change', e => {
+  $bkBar.style.display = e.target.checked ? '' : 'none';
+  localStorage.setItem('cfg_bkbar', e.target.checked);
+});
+id('set-engine').addEventListener('change', e => {
+  SEARCH_ENGINE = e.target.value;
+  localStorage.setItem('cfg_engine', SEARCH_ENGINE);
+});
+id('set-history').addEventListener('change', e => {
+  saveHistory = e.target.checked;
+  localStorage.setItem('cfg_history', saveHistory);
+});
+
+// ═══════════════════════════════════════════════════
+// TABS
+// ═══════════════════════════════════════════════════
+function createTab(url = NEWTAB, activate = true) {
+  const tabId = uid();
+  const iframe = document.createElement('iframe');
+  iframe.className = 'tab-iframe';
+  iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation');
+  iframe.title = 'Browser content';
+  $content.appendChild(iframe);
+  wireIframe(iframe, tabId);
+
+  const tab = { id: tabId, url: NEWTAB, title: 'New Tab', favicon: '🌐',
+                history: [], histIndex: -1, loading: false, iframe };
   tabs.push(tab);
-  renderTabBar();
-  if (activate) switchTab(id);
-  if (url !== HOME_URL) navigate(url);
+
+  if (activate) switchTab(tabId);
+  if (url !== NEWTAB) navigate(url);
   return tab;
 }
 
-function closeTab(id) {
-  const idx = tabs.findIndex(t => t.id === id);
-  if (tabs.length === 1) { createTab(); }
+function closeTab(tabId) {
+  const idx = tabs.findIndex(t => t.id === tabId);
+  if (idx < 0) return;
+  const tab = tabs[idx];
+  tab.iframe.remove();
   tabs.splice(idx, 1);
-  if (activeTabId === id) {
-    const next = tabs[Math.min(idx, tabs.length - 1)];
-    switchTab(next.id);
+
+  if (tabs.length === 0) {
+    createTab();
+    return;
   }
-  renderTabBar();
+  if (activeId === tabId) {
+    switchTab(tabs[Math.min(idx, tabs.length - 1)].id);
+  } else {
+    renderTabs();
+  }
 }
 
-function switchTab(id) {
-  activeTabId = id;
-  const tab = activeTab();
-  renderTabBar();
-  if (tab.url === HOME_URL) showNewTab();
-  else showFrame(tab.url);
-  $addressInput.value = tab.url === HOME_URL ? '' : tab.url;
-  updateNavButtons();
-  updateSecurityIcon(tab.url);
-  updateBookmarkIcon();
+function switchTab(tabId) {
+  activeId = tabId;
+  const tab = getTab(tabId);
+  if (!tab) return;
+
+  // Toggle iframe visibility
+  tabs.forEach(t => t.iframe.classList.toggle('active', t.id === tabId));
+  applyZoomToFrame(tab.iframe);
+
+  if (tab.url === NEWTAB) {
+    showSpecial('nt');
+  } else if (tab.url === '__history__') {
+    showSpecial('hist');
+  } else if (tab.url === '__settings__') {
+    showSpecial('settings');
+  } else {
+    hideAllSpecial();
+  }
+
+  $addrInput.value = tab.url === NEWTAB || tab.url.startsWith('__') ? '' : tab.url;
+  updateNav();
+  updateSecIcon(tab.url);
+  updateBkIcon();
+  renderTabs();
 }
 
-function activeTab() { return tabs.find(t => t.id === activeTabId); }
+function getTab(tabId) { return tabs.find(t => t.id === tabId); }
+function activeTab()   { return getTab(activeId); }
 
-function renderTabBar() {
+function renderTabs() {
   $tabBar.innerHTML = '';
   tabs.forEach(tab => {
     const el = document.createElement('div');
-    el.className = 'tab' + (tab.id === activeTabId ? ' active' : '');
-    el.dataset.id = tab.id;
+    el.className = 'tab' + (tab.id === activeId ? ' active' : '');
 
-    const favicon = document.createElement('span');
-    favicon.className = 'tab-favicon';
-    favicon.textContent = tab.favicon || (tab.loading ? '⏳' : '🌐');
+    const fav = document.createElement('span');
+    fav.className = 'tab-favicon';
+    fav.textContent = tab.loading ? '⏳' : tab.favicon;
 
     const title = document.createElement('span');
     title.className = 'tab-title';
     title.textContent = tab.title;
     title.title = tab.title;
 
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'tab-close';
-    closeBtn.textContent = '×';
-    closeBtn.title = 'Close tab';
-    closeBtn.addEventListener('click', e => { e.stopPropagation(); closeTab(tab.id); });
+    const x = document.createElement('button');
+    x.className = 'tab-close';
+    x.textContent = '×';
+    x.title = 'Close tab';
+    x.addEventListener('click', e => { e.stopPropagation(); closeTab(tab.id); });
 
-    el.append(favicon, title, closeBtn);
+    el.append(fav, title, x);
     el.addEventListener('click', () => switchTab(tab.id));
     $tabBar.appendChild(el);
   });
 }
 
-// ── Navigation ─────────────────────────────────────────────────
-function normalizeUrl(input) {
-  input = input.trim();
-  if (!input) return HOME_URL;
-  if (input === 'newtab' || input === 'about:newtab') return HOME_URL;
-  if (/^(about|chrome|file):/.test(input)) return handleSpecialUrl(input);
-  if (/^https?:\/\//i.test(input)) return input;
-  if (/^localhost(:\d+)?(\/|$)/.test(input)) return 'http://' + input;
-  if (/^[\w-]+(\.[\w-]+)+(\/|$|\?)/.test(input)) return 'https://' + input;
-  return SEARCH_ENGINE + encodeURIComponent(input);
+// ═══════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════
+function normalizeUrl(raw) {
+  raw = raw.trim();
+  if (!raw || raw === NEWTAB) return NEWTAB;
+  if (raw === 'chrome://history' || raw === 'about:history') return '__history__';
+  if (raw === 'chrome://settings' || raw === 'about:settings') return '__settings__';
+  if (raw === 'chrome://newtab' || raw === 'about:newtab') return NEWTAB;
+  if (/^(about|chrome):/.test(raw)) return NEWTAB;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^localhost(:\d+)?(\/|$)/.test(raw)) return 'http://' + raw;
+  if (/^[\w-]+(\.[\w-]+)+(\/|$|\?|#)/.test(raw)) return 'https://' + raw;
+  return SEARCH_ENGINE + encodeURIComponent(raw);
 }
 
-function handleSpecialUrl(url) {
-  const map = { 'about:blank': 'about:blank', 'chrome://newtab': HOME_URL, 'about:newtab': HOME_URL };
-  return map[url] || HOME_URL;
-}
-
-function navigate(rawUrl, pushHistory = true) {
+function navigate(rawUrl, pushHist = true) {
   const url = normalizeUrl(rawUrl);
   const tab = activeTab();
   if (!tab) return;
 
-  if (url === HOME_URL) {
-    tab.url = HOME_URL;
-    tab.title = 'New Tab';
-    tab.favicon = '🏠';
-    $addressInput.value = '';
-    showNewTab();
-    if (pushHistory && (tab.histIndex < 0 || tab.history[tab.histIndex] !== HOME_URL)) {
+  if (pushHist) {
+    if (tab.histIndex < 0 || tab.history[tab.histIndex] !== url) {
       tab.history = tab.history.slice(0, tab.histIndex + 1);
-      tab.history.push(HOME_URL);
+      tab.history.push(url);
       tab.histIndex++;
     }
-    renderTabBar();
-    updateNavButtons();
-    updateBookmarkIcon();
-    return;
-  }
-
-  if (pushHistory && (tab.histIndex < 0 || tab.history[tab.histIndex] !== url)) {
-    tab.history = tab.history.slice(0, tab.histIndex + 1);
-    tab.history.push(url);
-    tab.histIndex++;
   }
 
   tab.url = url;
-  $addressInput.value = url;
-  updateNavButtons();
-  updateSecurityIcon(url);
-  updateBookmarkIcon();
+
+  if (url === NEWTAB) {
+    tab.title = 'New Tab'; tab.favicon = '🏠';
+    $addrInput.value = '';
+    showSpecial('nt');
+    stopLoading(tab);
+    updateNav(); updateSecIcon(url); updateBkIcon(); renderTabs();
+    return;
+  }
+
+  if (url === '__history__') {
+    tab.title = 'History'; tab.favicon = '🕐';
+    $addrInput.value = '';
+    renderHistoryPage();
+    showSpecial('hist');
+    stopLoading(tab);
+    updateNav(); updateSecIcon(url); updateBkIcon(); renderTabs();
+    return;
+  }
+
+  if (url === '__settings__') {
+    tab.title = 'Settings'; tab.favicon = '⚙';
+    $addrInput.value = '';
+    showSpecial('settings');
+    stopLoading(tab);
+    updateNav(); updateSecIcon(url); updateBkIcon(); renderTabs();
+    return;
+  }
+
+  $addrInput.value = url;
+  hideAllSpecial();
+  updateNav(); updateSecIcon(url); updateBkIcon();
   loadUrl(url, tab);
-  addToHistory(url, tab.title || url);
-}
-
-function loadUrl(url, tab) {
-  $errorPage.classList.remove('visible');
-  $newTabPage.classList.remove('visible');
-  $frame.style.display = 'block';
-  tab.loading = true;
-  renderTabBar();
-  startLoading();
-
-  // Attempt to detect if frame can load - use timeout as proxy
-  clearTimeout(loadTimer);
-  $frame.src = url;
-
-  loadTimer = setTimeout(() => {
-    // Frame may have loaded or been blocked - check via DOM
-    try {
-      const doc = $frame.contentDocument;
-      if (!doc || doc.readyState === 'loading') throw new Error('not ready');
-      // Same-origin: can read title
-      if (doc.title) tab.title = doc.title;
-      finishLoading(tab);
-    } catch {
-      // Cross-origin (expected for most sites) — treat as loaded
-      finishLoading(tab);
-    }
-  }, 6000);
+  if (saveHistory) addToHistory(url, tab.title);
 }
 
 function goBack() {
@@ -1083,474 +1266,584 @@ function goForward() {
 function reload() {
   const tab = activeTab();
   if (!tab) return;
-  if (tab.url === HOME_URL) { showNewTab(); return; }
+  if (tab.url === NEWTAB) { showSpecial('nt'); return; }
+  if (tab.url === '__history__') { renderHistoryPage(); return; }
+  if (tab.url === '__settings__') { return; }
   loadUrl(tab.url, tab);
 }
 
-// ── Loading Bar ────────────────────────────────────────────────
-let loadProgress = 0;
-let loadInterval = null;
+// ═══════════════════════════════════════════════════
+// IFRAME LOADING
+// ═══════════════════════════════════════════════════
+function loadUrl(url, tab) {
+  hideAllSpecial();
+  tab.loading = true;
+  currentLoadingTabId = tab.id;
+  renderTabs();
+  startLoadAnim();
 
-function startLoading() {
-  clearInterval(loadInterval);
-  loadProgress = 5;
-  $loadingBar.style.width = loadProgress + '%';
-  $loadingBar.style.transition = 'width 0.3s ease, opacity 0.4s';
-  $loadingBar.classList.add('loading');
-  loadInterval = setInterval(() => {
-    if (loadProgress < 85) {
-      loadProgress += (85 - loadProgress) * 0.08 + 0.3;
-      $loadingBar.style.width = loadProgress + '%';
-    }
-  }, 120);
-  $reloadBtn.style.display = 'none';
-  $refreshStopBtn.style.display = 'flex';
-  $statusBar.textContent = 'Loading…';
+  // Reset then navigate — forces a real reload even for same URL
+  tab.iframe.src = 'about:blank';
+  requestAnimationFrame(() => {
+    tab.iframe.src = url;
+  });
 }
 
-function finishLoading(tab) {
-  clearInterval(loadInterval);
-  clearTimeout(loadTimer);
-  loadProgress = 100;
-  $loadingBar.style.width = '100%';
-  setTimeout(() => {
-    $loadingBar.classList.remove('loading');
-    $loadingBar.style.width = '0%';
-  }, 400);
-  tab.loading = false;
-  $reloadBtn.style.display = 'flex';
-  $refreshStopBtn.style.display = 'none';
-  $statusBar.textContent = '';
-  renderTabBar();
-}
+function wireIframe(iframe, tabId) {
+  iframe.addEventListener('load', () => {
+    const tab = getTab(tabId);
+    if (!tab || !tab.loading) return;
 
-// ── Views ──────────────────────────────────────────────────────
-function showNewTab() {
-  $frame.style.display = 'none';
-  $errorPage.classList.remove('visible');
-  $newTabPage.classList.add('visible');
-  $addressInput.value = '';
-  $securityIcon.textContent = '🔍';
-  $statusBar.textContent = '';
-  clearTimeout(loadTimer);
-  clearInterval(loadInterval);
-  $loadingBar.classList.remove('loading');
-  $loadingBar.style.width = '0%';
-  $reloadBtn.style.display = 'flex';
-  $refreshStopBtn.style.display = 'none';
-  const tab = activeTab();
-  if (tab) { tab.loading = false; renderTabBar(); }
-}
-
-function showFrame(url) {
-  $newTabPage.classList.remove('visible');
-  $errorPage.classList.remove('visible');
-  $frame.style.display = 'block';
-}
-
-function showError(icon, title, msg, url) {
-  clearTimeout(loadTimer);
-  clearInterval(loadInterval);
-  $loadingBar.classList.remove('loading');
-  $loadingBar.style.width = '0%';
-  $frame.style.display = 'none';
-  $newTabPage.classList.remove('visible');
-  $errorIcon.textContent = icon;
-  $errorTitle.textContent = title;
-  $errorMsg.textContent = msg;
-  document.getElementById('error-open-new').onclick = () => window.open(url, '_blank');
-  $errorPage.classList.add('visible');
-  $reloadBtn.style.display = 'flex';
-  $refreshStopBtn.style.display = 'none';
-  const tab = activeTab();
-  if (tab) { tab.loading = false; renderTabBar(); }
-}
-
-// ── Frame event handlers ───────────────────────────────────────
-$frame.addEventListener('load', () => {
-  const tab = activeTab();
-  if (!tab) return;
-  try {
-    const doc = $frame.contentDocument;
-    if (doc && doc.title) {
-      tab.title = doc.title;
-    }
-  } catch { /* cross-origin: expected */ }
-  finishLoading(tab);
-});
-
-$frame.addEventListener('error', () => {
-  const tab = activeTab();
-  if (!tab) return;
-  showError('🚫', 'This site can\'t be reached',
-    'The page refused to connect or the URL is invalid. Many sites block embedding for security reasons.',
-    tab.url);
-});
-
-// Detect blank frame after load (X-Frame-Options blocked)
-// We inject a mutation-based check via postMessage trick
-function checkFrameBlocked() {
-  clearTimeout(loadTimer);
-  loadTimer = setTimeout(() => {
+    // Try reading title (works same-origin; throws cross-origin — both fine)
     try {
-      const doc = $frame.contentDocument;
-      if (doc && (doc.body === null || (doc.body && doc.body.innerHTML === ''))) {
-        const tab = activeTab();
-        if (tab && tab.loading) {
-          showError('🛡️', 'Connection blocked',
-            'This site refused to be embedded. It uses X-Frame-Options or Content Security Policy to prevent embedding. Click "Open in new tab" to view it.',
-            tab.url);
-        }
-      } else {
-        const tab = activeTab();
-        if (tab) finishLoading(tab);
+      const doc = iframe.contentDocument;
+      if (doc && doc.title) tab.title = doc.title;
+
+      // Detect blank body = likely blocked by X-Frame-Options
+      if (doc && doc.body !== null && doc.body.innerHTML.trim() === ''
+          && doc.readyState === 'complete' && tab.url !== 'about:blank') {
+        showErrorForTab(tab, '🛡️',
+          'Blocked by site',
+          'This site uses X-Frame-Options or a Content-Security-Policy that prevents it from being embedded. Click "Open in new tab" to view it directly.');
+        return;
       }
     } catch {
-      // Cross-origin and loaded — assume success
-      const tab = activeTab();
-      if (tab) finishLoading(tab);
+      // Cross-origin: frame loaded successfully, we just can't read its DOM
     }
-  }, 3000);
+
+    // Try to pick up navigation URL (same-origin only)
+    try {
+      const href = iframe.contentWindow.location.href;
+      if (href && href !== 'about:blank') {
+        tab.url = href;
+        if (tab.id === activeId) $addrInput.value = href;
+        if (saveHistory) addToHistory(href, tab.title);
+      }
+    } catch { /* cross-origin */ }
+
+    finishLoad(tab);
+  });
+
+  iframe.addEventListener('error', () => {
+    const tab = getTab(tabId);
+    if (!tab) return;
+    showErrorForTab(tab, '🚫', 'This site can\'t be reached',
+      'The page refused to connect or the URL is invalid.');
+  });
 }
 
-// ── Address Bar ────────────────────────────────────────────────
-$addressInput.addEventListener('focus', () => {
-  $addressInput.select();
-  showAutocomplete($addressInput.value);
-});
+function showErrorForTab(tab, emoji, head, sub) {
+  stopLoading(tab);
+  if (tab.id !== activeId) return;
+  $errEmoji.textContent = emoji;
+  $errHead.textContent  = head;
+  $errSub.textContent   = sub;
+  id('err-open').onclick  = () => window.open(tab.url, '_blank');
+  id('err-retry').onclick = () => loadUrl(tab.url, tab);
+  hideAllSpecial();
+  $errPage.classList.add('visible');
+}
 
-$addressInput.addEventListener('input', () => {
-  showAutocomplete($addressInput.value);
-});
+// ── Loading animation ──────────────────────────────
+function startLoadAnim() {
+  clearInterval(loadInterval);
+  loadProgress = 4;
+  $loadBar.style.width = '4%';
+  $loadBar.classList.add('loading');
+  $reloadBtn.style.display = 'none';
+  $stopBtn.style.display = 'flex';
+  $statusBar.textContent = 'Loading…';
 
-$addressInput.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    navigate($addressInput.value);
-    hideAutocomplete();
-    $addressInput.blur();
-  } else if (e.key === 'Escape') {
-    hideAutocomplete();
-    $addressInput.blur();
-    const tab = activeTab();
-    $addressInput.value = tab && tab.url !== HOME_URL ? tab.url : '';
-  } else if (e.key === 'ArrowDown') {
-    acMoveSel(1); e.preventDefault();
-  } else if (e.key === 'ArrowUp') {
-    acMoveSel(-1); e.preventDefault();
+  loadInterval = setInterval(() => {
+    if (loadProgress < 82) {
+      loadProgress += (82 - loadProgress) * 0.07 + 0.4;
+      $loadBar.style.width = loadProgress + '%';
+    }
+  }, 110);
+}
+
+function finishLoad(tab) {
+  clearInterval(loadInterval);
+  loadProgress = 100;
+  $loadBar.style.width = '100%';
+  setTimeout(() => { $loadBar.classList.remove('loading'); $loadBar.style.width = '0%'; }, 380);
+  tab.loading = false;
+  if (tab.id === currentLoadingTabId) {
+    $reloadBtn.style.display = '';
+    $stopBtn.style.display = 'none';
+    $statusBar.textContent = '';
   }
-});
+  renderTabs();
+}
 
-$addressInput.addEventListener('blur', () => {
-  setTimeout(hideAutocomplete, 150);
-});
+function stopLoading(tab) {
+  clearInterval(loadInterval);
+  $loadBar.classList.remove('loading');
+  $loadBar.style.width = '0%';
+  tab.loading = false;
+  $reloadBtn.style.display = '';
+  $stopBtn.style.display = 'none';
+  $statusBar.textContent = '';
+  renderTabs();
+}
 
-// ── Autocomplete ───────────────────────────────────────────────
-const SUGGESTIONS = [
-  { icon: '🔍', title: 'Google', url: 'https://www.google.com' },
-  { icon: '🐙', title: 'GitHub', url: 'https://github.com' },
-  { icon: '📖', title: 'Wikipedia', url: 'https://en.wikipedia.org' },
-  { icon: '▶️', title: 'YouTube', url: 'https://www.youtube.com' },
-  { icon: '🔶', title: 'Hacker News', url: 'https://news.ycombinator.com' },
-  { icon: '🤖', title: 'Reddit', url: 'https://www.reddit.com' },
-  { icon: '🗺️', title: 'OpenStreetMap', url: 'https://www.openstreetmap.org' },
-  { icon: '📄', title: 'arXiv', url: 'https://arxiv.org' },
-  { icon: '📰', title: 'MDN Web Docs', url: 'https://developer.mozilla.org' },
-  { icon: '🌩️', title: 'Stack Overflow', url: 'https://stackoverflow.com' },
-  { icon: '🎨', title: 'CodePen', url: 'https://codepen.io' },
-  { icon: '📦', title: 'npm', url: 'https://www.npmjs.com' },
-  { icon: '📡', title: 'Can I Use', url: 'https://caniuse.com' },
+// ═══════════════════════════════════════════════════
+// SPECIAL PAGES
+// ═══════════════════════════════════════════════════
+function showSpecial(which) {
+  $ntPage.classList.toggle('visible', which === 'nt');
+  $errPage.classList.toggle('visible', which === 'err');
+  $histPage.classList.toggle('visible', which === 'hist');
+  $settPage.classList.toggle('visible', which === 'settings');
+  // Hide all iframes' active states when showing a special page
+  if (which !== 'frame') {
+    tabs.forEach(t => t.iframe.style.display = (t.id === activeId && which === 'frame') ? 'block' : '');
+  }
+  // Make active iframe visible only when showing frame content
+  const tab = activeTab();
+  if (tab) {
+    tab.iframe.classList.toggle('active', which === 'frame' || (!['nt','hist','settings','err'].includes(which)));
+  }
+}
+
+function hideAllSpecial() {
+  $ntPage.classList.remove('visible');
+  $errPage.classList.remove('visible');
+  $histPage.classList.remove('visible');
+  $settPage.classList.remove('visible');
+  const tab = activeTab();
+  if (tab) tab.iframe.classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════
+// ZOOM
+// ═══════════════════════════════════════════════════
+function applyZoom(val) {
+  if (val !== undefined) zoomLevel = Math.max(25, Math.min(200, val));
+  $zoomDisp.textContent = zoomLevel + '%';
+  const tab = activeTab();
+  if (tab) applyZoomToFrame(tab.iframe);
+}
+
+function applyZoomToFrame(iframe) {
+  const s = zoomLevel / 100;
+  if (s === 1) {
+    iframe.style.transform = '';
+    iframe.style.width = '';
+    iframe.style.height = '';
+  } else {
+    iframe.style.transform = `scale(${s})`;
+    iframe.style.transformOrigin = '0 0';
+    iframe.style.width  = (100 / s) + '%';
+    iframe.style.height = (100 / s) + '%';
+  }
+}
+
+id('zoom-in').addEventListener('click',    () => applyZoom(zoomLevel + 10));
+id('zoom-out').addEventListener('click',   () => applyZoom(zoomLevel - 10));
+id('zoom-reset').addEventListener('click', () => applyZoom(100));
+
+// ═══════════════════════════════════════════════════
+// ADDRESS BAR
+// ═══════════════════════════════════════════════════
+$addrInput.addEventListener('focus', () => {
+  $addrInput.select();
+  buildAC($addrInput.value);
+});
+$addrInput.addEventListener('input', () => buildAC($addrInput.value));
+$addrInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const sel = $acBox.querySelector('.sel');
+    const url = sel ? sel.dataset.url : $addrInput.value;
+    navigate(url);
+    closeAC();
+    $addrInput.blur();
+  } else if (e.key === 'Escape') {
+    closeAC();
+    $addrInput.blur();
+    const tab = activeTab();
+    $addrInput.value = tab && !tab.url.startsWith('__') && tab.url !== NEWTAB ? tab.url : '';
+  } else if (e.key === 'ArrowDown') { e.preventDefault(); acMove(1); }
+  else if (e.key === 'ArrowUp')   { e.preventDefault(); acMove(-1); }
+});
+$addrInput.addEventListener('blur', () => setTimeout(closeAC, 160));
+
+// ═══════════════════════════════════════════════════
+// AUTOCOMPLETE
+// ═══════════════════════════════════════════════════
+const SITES = [
+  { icon:'🔍', name:'Google',       url:'https://www.google.com' },
+  { icon:'🐙', name:'GitHub',       url:'https://github.com' },
+  { icon:'📖', name:'Wikipedia',    url:'https://en.wikipedia.org' },
+  { icon:'▶️', name:'YouTube',      url:'https://www.youtube.com' },
+  { icon:'🔶', name:'Hacker News',  url:'https://news.ycombinator.com' },
+  { icon:'🤖', name:'Reddit',       url:'https://www.reddit.com' },
+  { icon:'🗺️', name:'OpenStreetMap',url:'https://www.openstreetmap.org' },
+  { icon:'📄', name:'arXiv',        url:'https://arxiv.org' },
+  { icon:'📰', name:'MDN',          url:'https://developer.mozilla.org' },
+  { icon:'🌩️', name:'Stack Overflow',url:'https://stackoverflow.com' },
+  { icon:'🎨', name:'CodePen',      url:'https://codepen.io' },
+  { icon:'📦', name:'npm',          url:'https://www.npmjs.com' },
+  { icon:'📡', name:'Can I Use',    url:'https://caniuse.com' },
 ];
 
-let acSelected = -1;
+let acSel = -1;
 
-function showAutocomplete(query) {
-  acSelected = -1;
-  if (!query) {
-    // Show recent history
-    const items = browserHistory.slice(0, 5);
-    if (items.length === 0) { hideAutocomplete(); return; }
-    renderAC(items.map(h => ({ icon: '🕐', title: h.title, url: h.url })));
-    return;
+function buildAC(q) {
+  acSel = -1;
+  let items = [];
+
+  if (!q) {
+    items = browserHistory.slice(0, 6).map(h => ({ icon:'🕐', name: h.title || h.url, url: h.url }));
+  } else {
+    const lq = q.toLowerCase();
+    const siteMatches = SITES.filter(s => s.url.includes(lq) || s.name.toLowerCase().includes(lq)).slice(0, 4);
+    const histMatches = browserHistory
+      .filter(h => h.url.toLowerCase().includes(lq) || (h.title||'').toLowerCase().includes(lq))
+      .slice(0, 3)
+      .map(h => ({ icon:'🕐', name: h.title || h.url, url: h.url }))
+      .filter(h => !siteMatches.find(s => s.url === h.url));
+
+    items = [...histMatches, ...siteMatches];
+
+    const isUrl = /^https?:\/\//.test(q) || /^[\w-]+(\.[\w-]+)+(\/|$)/.test(q);
+    const fallback = isUrl
+      ? { icon:'🌐', name: q, url: q }
+      : { icon:'🔍', name: `Search: "${q}"`, url: SEARCH_ENGINE + encodeURIComponent(q) };
+    if (!items.find(i => i.url === fallback.url)) items.push(fallback);
+    items = items.slice(0, 7);
   }
-  const q = query.toLowerCase();
-  const matched = SUGGESTIONS.filter(s => s.url.toLowerCase().includes(q) || s.title.toLowerCase().includes(q)).slice(0, 4);
-  const histMatched = browserHistory.filter(h => h.url.toLowerCase().includes(q) || (h.title||'').toLowerCase().includes(q)).slice(0, 3);
-  histMatched.forEach(h => { if (!matched.find(m => m.url === h.url)) matched.unshift({ icon: '🕐', title: h.title || h.url, url: h.url }); });
 
-  if (query && !matched.find(m => m.url === query)) {
-    const isUrl = /^https?:\/\//.test(query) || /^[\w-]+(\.[\w-]+)+(\/|$)/.test(query);
-    matched.push({ icon: isUrl ? '🌐' : '🔍', title: isUrl ? query : `Search: "${query}"`, url: isUrl ? query : SEARCH_ENGINE + encodeURIComponent(query) });
-  }
-  renderAC(matched.slice(0, 6));
-}
+  if (!items.length) { closeAC(); return; }
 
-function renderAC(items) {
-  if (items.length === 0) { hideAutocomplete(); return; }
-  const rect = document.getElementById('address-bar-container').getBoundingClientRect();
-  $autocomplete.style.top = (rect.bottom + 4) + 'px';
-  $autocomplete.style.left = rect.left + 'px';
-  $autocomplete.style.width = rect.width + 'px';
-  $autocomplete.innerHTML = '';
-  items.forEach((item, i) => {
-    const el = document.createElement('div');
-    el.className = 'ac-item';
-    el.innerHTML = `<span class="ac-item-icon">${item.icon}</span><div class="ac-item-text"><div class="ac-item-title">${esc(item.title)}</div><div class="ac-item-url">${esc(item.url)}</div></div>`;
-    el.addEventListener('mousedown', e => { e.preventDefault(); navigate(item.url); hideAutocomplete(); });
-    $autocomplete.appendChild(el);
+  const rect = $addrWrap.getBoundingClientRect();
+  $acBox.style.top   = (rect.bottom + 3) + 'px';
+  $acBox.style.left  = rect.left + 'px';
+  $acBox.style.width = rect.width + 'px';
+  $acBox.innerHTML   = '';
+
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'ac-row';
+    row.dataset.url = item.url;
+    row.innerHTML = `<span class="ac-ico">${item.icon}</span><div class="ac-text"><div class="ac-name">${esc(item.name)}</div><div class="ac-url">${esc(item.url)}</div></div>`;
+    row.addEventListener('mousedown', e => { e.preventDefault(); navigate(item.url); closeAC(); });
+    $acBox.appendChild(row);
   });
-  $autocomplete.classList.add('visible');
+  $acBox.classList.add('visible');
 }
 
-function hideAutocomplete() { $autocomplete.classList.remove('visible'); }
+function closeAC() { $acBox.classList.remove('visible'); acSel = -1; }
 
-function acMoveSel(dir) {
-  const items = $autocomplete.querySelectorAll('.ac-item');
-  if (!items.length) return;
-  items[acSelected]?.classList.remove('selected');
-  acSelected = (acSelected + dir + items.length) % items.length;
-  items[acSelected].classList.add('selected');
-  $addressInput.value = items[acSelected].querySelector('.ac-item-url').textContent;
+function acMove(dir) {
+  const rows = [...$acBox.querySelectorAll('.ac-row')];
+  if (!rows.length) return;
+  if (acSel >= 0) rows[acSel].classList.remove('sel');
+  // Wrap correctly: -1 + (-1) + n = n-2 → fix by clamping first
+  acSel = ((acSel + dir) + rows.length) % rows.length;
+  rows[acSel].classList.add('sel');
+  $addrInput.value = rows[acSel].dataset.url;
 }
 
-// ── Nav buttons ─────────────────────────────────────────────────
-function updateNavButtons() {
+// ═══════════════════════════════════════════════════
+// BOOKMARKS
+// ═══════════════════════════════════════════════════
+function updateBkIcon() {
   const tab = activeTab();
-  $backBtn.disabled = !tab || tab.histIndex <= 0;
-  $forwardBtn.disabled = !tab || tab.histIndex >= tab.history.length - 1;
-}
-
-function updateSecurityIcon(url) {
-  if (!url || url === HOME_URL) { $securityIcon.textContent = '🔍'; return; }
-  if (url.startsWith('https://')) $securityIcon.textContent = '🔒';
-  else if (url.startsWith('http://')) $securityIcon.textContent = '⚠️';
-  else $securityIcon.textContent = '🌐';
-}
-
-// ── Bookmarks ───────────────────────────────────────────────────
-function updateBookmarkIcon() {
-  const tab = activeTab();
-  const url = tab ? tab.url : HOME_URL;
-  const saved = bookmarks.find(b => b.url === url);
-  $bookmarkBtn.classList.toggle('bookmarked', !!saved);
+  const isBookmarked = tab && tab.url !== NEWTAB && !tab.url.startsWith('__')
+    && bookmarks.some(b => b.url === tab.url);
+  $bkBtn.classList.toggle('bookmarked', isBookmarked);
 }
 
 function toggleBookmark() {
   const tab = activeTab();
-  if (!tab || tab.url === HOME_URL) return;
+  if (!tab || tab.url === NEWTAB || tab.url.startsWith('__')) return;
   const idx = bookmarks.findIndex(b => b.url === tab.url);
-  if (idx >= 0) {
-    bookmarks.splice(idx, 1);
-    toast('Bookmark removed');
-  } else {
-    bookmarks.push({ url: tab.url, title: tab.title || tab.url });
-    toast('Bookmark added!');
-  }
+  if (idx >= 0) { bookmarks.splice(idx, 1); toast('Bookmark removed'); }
+  else          { bookmarks.push({ url: tab.url, title: tab.title || tab.url }); toast('Bookmark saved!'); }
   localStorage.setItem('bk_bookmarks', JSON.stringify(bookmarks));
-  updateBookmarkIcon();
+  updateBkIcon();
 }
 
-$bookmarkBtn.addEventListener('click', toggleBookmark);
-
-// Bookmark bar items
-document.querySelectorAll('.bookmark-item').forEach(el => {
+$bkBtn.addEventListener('click', toggleBookmark);
+$bkBar.querySelectorAll('.bk-item').forEach(el => {
   el.addEventListener('click', () => navigate(el.dataset.url));
-  el.addEventListener('mouseover', () => { $statusBar.textContent = el.dataset.url; });
-  el.addEventListener('mouseout', () => { $statusBar.textContent = ''; });
+  el.addEventListener('mouseenter', () => { $statusBar.textContent = el.dataset.url; });
+  el.addEventListener('mouseleave', () => { $statusBar.textContent = ''; });
 });
 
-// ── History ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════
 function addToHistory(url, title) {
-  if (!url || url === HOME_URL || url.startsWith(SEARCH_ENGINE)) return;
+  if (!url || url === NEWTAB || url.startsWith('__') || url.startsWith(SEARCH_ENGINE)) return;
   browserHistory = browserHistory.filter(h => h.url !== url);
   browserHistory.unshift({ url, title: title || url, time: Date.now() });
-  if (browserHistory.length > 100) browserHistory.length = 100;
+  if (browserHistory.length > 200) browserHistory.length = 200;
   localStorage.setItem('bk_history', JSON.stringify(browserHistory));
 }
 
-// ── New Tab Page ─────────────────────────────────────────────────
-function updateClock() {
-  const now = new Date();
-  const h = String(now.getHours()).padStart(2, '0');
-  const m = String(now.getMinutes()).padStart(2, '0');
-  $ntClock.textContent = h + ':' + m;
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  $ntDate.textContent = `${days[now.getDay()]}, ${months[now.getMonth()]} ${now.getDate()}`;
-}
-updateClock();
-setInterval(updateClock, 1000);
-
-function createParticles() {
-  const container = document.getElementById('nt-bg-particles');
-  for (let i = 0; i < 12; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = 20 + Math.random() * 120;
-    p.style.cssText = `width:${size}px;height:${size}px;left:${Math.random()*100}%;animation-duration:${15+Math.random()*25}s;animation-delay:-${Math.random()*20}s`;
-    container.appendChild(p);
+function renderHistoryPage() {
+  const $list = id('hp-list');
+  if (!browserHistory.length) {
+    $list.innerHTML = '<div class="hist-empty">No history yet</div>';
+    return;
   }
+  const groups = {};
+  const now = new Date();
+  browserHistory.forEach(h => {
+    const d = new Date(h.time);
+    let label;
+    const diff = now - d;
+    if (diff < 3600000) label = 'Last hour';
+    else if (diff < 86400000) label = 'Today';
+    else if (diff < 172800000) label = 'Yesterday';
+    else label = d.toLocaleDateString(undefined, { weekday:'long', month:'short', day:'numeric' });
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(h);
+  });
+
+  $list.innerHTML = '';
+  Object.entries(groups).forEach(([label, items]) => {
+    const gl = document.createElement('div');
+    gl.className = 'hist-group-label';
+    gl.textContent = label;
+    $list.appendChild(gl);
+    items.forEach(h => {
+      const row = document.createElement('div');
+      row.className = 'hist-item';
+      const timeStr = new Date(h.time).toLocaleTimeString(undefined, { hour:'2-digit', minute:'2-digit' });
+      row.innerHTML = `<span class="hist-icon">🌐</span>
+        <div class="hist-info">
+          <div class="hist-title">${esc(h.title || h.url)}</div>
+          <div class="hist-url">${esc(h.url)}</div>
+        </div>
+        <span class="hist-time">${timeStr}</span>
+        <button class="hist-del" title="Remove">×</button>`;
+      row.querySelector('.hist-del').addEventListener('click', e => {
+        e.stopPropagation();
+        browserHistory = browserHistory.filter(x => x.url !== h.url || x.time !== h.time);
+        localStorage.setItem('bk_history', JSON.stringify(browserHistory));
+        renderHistoryPage();
+      });
+      row.addEventListener('click', e => { if (!e.target.matches('.hist-del')) navigate(h.url); });
+      $list.appendChild(row);
+    });
+  });
 }
-createParticles();
 
-function ntSearch(val) {
-  if (!val) return;
-  navigate(val);
-}
-
-$ntSearch.addEventListener('keydown', e => { if (e.key === 'Enter') ntSearch($ntSearch.value); });
-document.getElementById('nt-search-submit').addEventListener('click', () => ntSearch($ntSearch.value));
-
-document.querySelectorAll('.nt-shortcut').forEach(el => {
-  el.addEventListener('click', () => navigate(el.dataset.url));
+id('hp-clear').addEventListener('click', () => {
+  if (!confirm('Clear all browsing history?')) return;
+  browserHistory = [];
+  localStorage.removeItem('bk_history');
+  renderHistoryPage();
+  toast('History cleared');
 });
 
-// ── Event wiring ─────────────────────────────────────────────────
-$newTabBtn.addEventListener('click', () => createTab());
-$backBtn.addEventListener('click', goBack);
-$forwardBtn.addEventListener('click', goForward);
-$reloadBtn.addEventListener('click', reload);
-$refreshStopBtn.addEventListener('click', () => { clearTimeout(loadTimer); const tab = activeTab(); if(tab) finishLoading(tab); });
-$homeBtn.addEventListener('click', () => navigate(HOME_URL));
-
-// ── Zoom ──────────────────────────────────────────────────────────
-function applyZoom() {
-  $frame.style.transform = `scale(${zoomLevel/100})`;
-  $frame.style.transformOrigin = 'top left';
-  $frame.style.width = `${10000/zoomLevel}%`;
-  $frame.style.height = `${10000/zoomLevel}%`;
-  $zoomLevel.textContent = zoomLevel + '%';
+// ═══════════════════════════════════════════════════
+// NAV BUTTONS
+// ═══════════════════════════════════════════════════
+function updateNav() {
+  const tab = activeTab();
+  $backBtn.disabled = !tab || tab.histIndex <= 0;
+  $fwdBtn.disabled  = !tab || tab.histIndex >= tab.history.length - 1;
 }
 
-document.getElementById('zoom-in').addEventListener('click', () => { zoomLevel = Math.min(200, zoomLevel + 10); applyZoom(); });
-document.getElementById('zoom-out').addEventListener('click', () => { zoomLevel = Math.max(25, zoomLevel - 10); applyZoom(); });
-document.getElementById('zoom-reset').addEventListener('click', () => { zoomLevel = 100; applyZoom(); });
+function updateSecIcon(url) {
+  if (!url || url === NEWTAB || url.startsWith('__')) { $secIcon.textContent = '🔍'; return; }
+  $secIcon.textContent = url.startsWith('https://') ? '🔒' : '⚠️';
+}
 
-// ── Menu Panel ─────────────────────────────────────────────────
+$backBtn.addEventListener('click', goBack);
+$fwdBtn.addEventListener('click',  goForward);
+$reloadBtn.addEventListener('click', reload);
+$stopBtn.addEventListener('click', () => {
+  const tab = activeTab();
+  if (tab) { tab.iframe.src = 'about:blank'; stopLoading(tab); }
+});
+$homeBtn.addEventListener('click', () => navigate(NEWTAB));
+
+// ═══════════════════════════════════════════════════
+// MENU PANEL
+// ═══════════════════════════════════════════════════
 $menuBtn.addEventListener('click', e => {
-  const rect = $menuBtn.getBoundingClientRect();
-  $menuPanel.style.right = (window.innerWidth - rect.right) + 'px';
-  $menuPanel.style.top = (rect.bottom + 4) + 'px';
-  $menuPanel.style.left = 'auto';
+  const r = $menuBtn.getBoundingClientRect();
+  $menuPanel.style.top   = (r.bottom + 4) + 'px';
+  $menuPanel.style.right = (window.innerWidth - r.right) + 'px';
+  $menuPanel.style.left  = 'auto';
   $menuPanel.classList.toggle('visible');
   e.stopPropagation();
 });
 
-document.getElementById('mp-new-tab').addEventListener('click', () => { createTab(); closeMenu(); });
-document.getElementById('mp-find').addEventListener('click', () => { openFind(); closeMenu(); });
-document.getElementById('mp-print').addEventListener('click', () => { window.print(); closeMenu(); });
-document.getElementById('mp-bookmark').addEventListener('click', () => { toggleBookmark(); closeMenu(); });
-document.getElementById('mp-about').addEventListener('click', () => { showAbout(); closeMenu(); });
-document.getElementById('mp-history').addEventListener('click', () => { navigate(HOME_URL); closeMenu(); toast('History coming soon'); });
-document.getElementById('mp-downloads').addEventListener('click', () => { toast('Downloads manager coming soon'); closeMenu(); });
-document.getElementById('mp-settings').addEventListener('click', () => { toast('Settings coming soon'); closeMenu(); });
+id('mp-newtab').addEventListener('click',   () => { createTab(); closeMenuPanel(); });
+id('mp-find').addEventListener('click',     () => { openFind(); closeMenuPanel(); });
+id('mp-print').addEventListener('click',    () => { window.print(); closeMenuPanel(); });
+id('mp-bookmark').addEventListener('click', () => { toggleBookmark(); closeMenuPanel(); });
+id('mp-history').addEventListener('click',  () => { navigate('__history__'); closeMenuPanel(); });
+id('mp-settings').addEventListener('click', () => { navigate('__settings__'); closeMenuPanel(); });
+id('mp-about').addEventListener('click',    () => { showAbout(); closeMenuPanel(); });
 
-function closeMenu() { $menuPanel.classList.remove('visible'); }
+function closeMenuPanel() { $menuPanel.classList.remove('visible'); }
 
-// ── Context Menu ──────────────────────────────────────────────
+// ═══════════════════════════════════════════════════
+// CONTEXT MENU
+// ═══════════════════════════════════════════════════
 document.addEventListener('contextmenu', e => {
   e.preventDefault();
-  $contextMenu.style.left = Math.min(e.clientX, window.innerWidth - 220) + 'px';
-  $contextMenu.style.top  = Math.min(e.clientY, window.innerHeight - 200) + 'px';
-  $contextMenu.classList.add('visible');
+  $ctxMenu.style.left = Math.min(e.clientX, window.innerWidth  - 210) + 'px';
+  $ctxMenu.style.top  = Math.min(e.clientY, window.innerHeight - 180) + 'px';
+  $ctxMenu.classList.add('visible');
 });
+id('ctx-back').addEventListener('click',   () => { goBack();    closeCtx(); });
+id('ctx-fwd').addEventListener('click',    () => { goForward(); closeCtx(); });
+id('ctx-reload').addEventListener('click', () => { reload();    closeCtx(); });
+id('ctx-newtab').addEventListener('click', () => { createTab(); closeCtx(); });
+id('ctx-openwin').addEventListener('click', () => { const t = activeTab(); if (t && t.url !== NEWTAB) window.open(t.url, '_blank'); closeCtx(); });
+id('ctx-print').addEventListener('click',  () => { window.print(); closeCtx(); });
+function closeCtx() { $ctxMenu.classList.remove('visible'); }
 
-document.getElementById('cm-back').addEventListener('click', () => { goBack(); hideContextMenu(); });
-document.getElementById('cm-forward').addEventListener('click', () => { goForward(); hideContextMenu(); });
-document.getElementById('cm-reload').addEventListener('click', () => { reload(); hideContextMenu(); });
-document.getElementById('cm-new-tab').addEventListener('click', () => { createTab(); hideContextMenu(); });
-document.getElementById('cm-open-new').addEventListener('click', () => { const tab = activeTab(); if(tab && tab.url !== HOME_URL) window.open(tab.url,'_blank'); hideContextMenu(); });
-document.getElementById('cm-save').addEventListener('click', () => { toast('Save page: use Ctrl+S in your browser'); hideContextMenu(); });
-document.getElementById('cm-print').addEventListener('click', () => { window.print(); hideContextMenu(); });
+// ═══════════════════════════════════════════════════
+// FIND BAR
+// ═══════════════════════════════════════════════════
+function openFind()  { $findBar.classList.add('visible'); $findInput.focus(); $findInput.select(); }
+function closeFind() { $findBar.classList.remove('visible'); }
 
-function hideContextMenu() { $contextMenu.classList.remove('visible'); }
+id('find-close').addEventListener('click', closeFind);
+$findInput.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeFind();
+  if (e.key === 'Enter') { e.shiftKey ? findPrev() : findNext(); }
+});
+id('find-prev').addEventListener('click', findPrev);
+id('find-next').addEventListener('click', findNext);
 
-// ── Find Bar ──────────────────────────────────────────────────
-function openFind() { $findBar.classList.add('visible'); $findInput.focus(); $findInput.select(); }
-function closeFind() { $findBar.classList.remove('visible'); window.getSelection()?.removeAllRanges(); }
+function findNext() { toast('Use Ctrl+F in your OS browser for full in-page search'); }
+function findPrev() { toast('Use Ctrl+F in your OS browser for full in-page search'); }
 
-document.getElementById('find-close').addEventListener('click', closeFind);
-$findInput.addEventListener('keydown', e => { if (e.key === 'Escape') closeFind(); });
-$findInput.addEventListener('input', () => { $findCount.textContent = ''; });
-
-document.getElementById('find-prev').addEventListener('click', () => { toast('Find: use Ctrl+F in your browser for full search'); });
-document.getElementById('find-next').addEventListener('click', () => { toast('Find: use Ctrl+F in your browser for full search'); });
-
-// ── Keyboard shortcuts ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════
 document.addEventListener('keydown', e => {
-  const ctrl = e.ctrlKey || e.metaKey;
-  if (ctrl && e.key === 't') { e.preventDefault(); createTab(); }
-  if (ctrl && e.key === 'w') { e.preventDefault(); const tab = activeTab(); if(tab) closeTab(tab.id); }
-  if (ctrl && e.key === 'l') { e.preventDefault(); $addressInput.focus(); $addressInput.select(); }
-  if (ctrl && e.key === 'r') { e.preventDefault(); reload(); }
-  if (ctrl && e.key === 'f') { e.preventDefault(); openFind(); }
-  if (ctrl && e.key === 'd') { e.preventDefault(); toggleBookmark(); }
-  if (ctrl && e.key === 'h') { e.preventDefault(); navigate(HOME_URL); toast('History: coming soon'); }
-  if (e.key === 'F5') { e.preventDefault(); reload(); }
-  if (e.key === 'Escape') { hideContextMenu(); closeMenu(); hideAutocomplete(); }
-  if (ctrl && e.shiftKey && e.key === 'Tab') { e.preventDefault(); switchPrevTab(); }
-  if (ctrl && e.key === 'Tab') { e.preventDefault(); switchNextTab(); }
-  if (ctrl && (e.key === '+' || e.key === '=')) { e.preventDefault(); zoomLevel = Math.min(200, zoomLevel + 10); applyZoom(); }
-  if (ctrl && e.key === '-') { e.preventDefault(); zoomLevel = Math.max(25, zoomLevel - 10); applyZoom(); }
-  if (ctrl && e.key === '0') { e.preventDefault(); zoomLevel = 100; applyZoom(); }
-  if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); goBack(); }
+  const C = e.ctrlKey || e.metaKey;
+  if (C && e.key === 't')   { e.preventDefault(); createTab(); }
+  if (C && e.key === 'w')   { e.preventDefault(); const t = activeTab(); if (t) closeTab(t.id); }
+  if (C && e.key === 'l')   { e.preventDefault(); $addrInput.focus(); $addrInput.select(); }
+  if (C && e.key === 'r')   { e.preventDefault(); reload(); }
+  if (C && e.key === 'f')   { e.preventDefault(); openFind(); }
+  if (C && e.key === 'd')   { e.preventDefault(); toggleBookmark(); }
+  if (C && e.key === 'h')   { e.preventDefault(); navigate('__history__'); }
+  if (C && e.key === ',')   { e.preventDefault(); navigate('__settings__'); }
+  if (e.key === 'F5')       { e.preventDefault(); reload(); }
+  if (e.key === 'Escape')   { closeCtx(); closeMenuPanel(); closeAC(); closeFind(); }
+  if (C && e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); switchNextTab(); }
+  if (C && e.key === 'Tab' &&  e.shiftKey) { e.preventDefault(); switchPrevTab(); }
+  if (C && (e.key === '=' || e.key === '+')) { e.preventDefault(); applyZoom(zoomLevel + 10); }
+  if (C && e.key === '-')   { e.preventDefault(); applyZoom(zoomLevel - 10); }
+  if (C && e.key === '0')   { e.preventDefault(); applyZoom(100); }
+  if (e.altKey && e.key === 'ArrowLeft')  { e.preventDefault(); goBack(); }
   if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); goForward(); }
 });
 
 function switchNextTab() {
-  const idx = tabs.findIndex(t => t.id === activeTabId);
+  const idx = tabs.findIndex(t => t.id === activeId);
   switchTab(tabs[(idx + 1) % tabs.length].id);
 }
 function switchPrevTab() {
-  const idx = tabs.findIndex(t => t.id === activeTabId);
+  const idx = tabs.findIndex(t => t.id === activeId);
   switchTab(tabs[(idx - 1 + tabs.length) % tabs.length].id);
 }
 
-// ── Global click dismissal ─────────────────────────────────────
-document.addEventListener('click', () => { hideContextMenu(); closeMenu(); hideAutocomplete(); });
-
-// ── Window controls ─────────────────────────────────────────────
-document.getElementById('wc-close').addEventListener('click', () => { toast('Close: this is an embedded browser'); });
-document.getElementById('wc-min').addEventListener('click', () => { document.getElementById('browser').style.transform = 'scale(0.95)'; setTimeout(() => { document.getElementById('browser').style.transform = ''; }, 300); });
-document.getElementById('wc-max').addEventListener('click', () => {
-  const br = document.getElementById('browser');
-  if (br.style.width === '100vw') {
-    br.style.width = ''; br.style.height = ''; br.style.borderRadius = '';
-  } else {
-    br.style.width = '100vw'; br.style.height = '100vh'; br.style.borderRadius = '0';
-  }
+// ═══════════════════════════════════════════════════
+// WINDOW CONTROLS
+// ═══════════════════════════════════════════════════
+id('wc-close').addEventListener('click', () => toast('This is an embedded browser — close the page tab to exit'));
+id('wc-min').addEventListener('click', () => {
+  const b = id('browser');
+  b.style.transition = 'transform 0.2s';
+  b.style.transform = 'scale(0.96)';
+  setTimeout(() => { b.style.transform = ''; }, 250);
+});
+id('wc-max').addEventListener('click', () => {
+  id('browser').classList.toggle('maximized');
 });
 
-// ── Error page buttons ────────────────────────────────────────
-document.getElementById('error-go-home').addEventListener('click', () => navigate(HOME_URL));
+// ═══════════════════════════════════════════════════
+// ERROR PAGE ACTIONS
+// ═══════════════════════════════════════════════════
+id('err-home').addEventListener('click', () => navigate(NEWTAB));
 
-// ── Status bar hover ─────────────────────────────────────────
-$frame.addEventListener('mouseover', () => { });
+// ═══════════════════════════════════════════════════
+// GLOBAL DISMISS
+// ═══════════════════════════════════════════════════
+document.addEventListener('click', () => { closeCtx(); closeMenuPanel(); closeAC(); });
 
-// ── Toast ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════
+// NEW TAB PAGE
+// ═══════════════════════════════════════════════════
+function tickClock() {
+  const n = new Date();
+  $ntClock.textContent = pad(n.getHours()) + ':' + pad(n.getMinutes());
+  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  $ntDate.textContent = `${DAYS[n.getDay()]}, ${MONTHS[n.getMonth()]} ${n.getDate()}`;
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+(function spawnParticles() {
+  const c = id('nt-particles');
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const s = 16 + Math.random() * 130;
+    p.style.cssText = `width:${s}px;height:${s}px;left:${(Math.random()*110)-5}%;animation-duration:${14+Math.random()*26}s;animation-delay:-${Math.random()*22}s`;
+    c.appendChild(p);
+  }
+})();
+
+$ntSearch.addEventListener('keydown', e => { if (e.key === 'Enter' && $ntSearch.value) navigate($ntSearch.value); });
+id('nt-search-submit').addEventListener('click', () => { if ($ntSearch.value) navigate($ntSearch.value); });
+id('nt-tiles').querySelectorAll('.nt-tile').forEach(el => {
+  el.addEventListener('click', () => navigate(el.dataset.url));
+});
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
 let toastTimer;
-function toast(msg, duration = 2500) {
+function toast(msg, ms = 2600) {
   clearTimeout(toastTimer);
   $toast.textContent = msg;
   $toast.classList.add('show');
-  toastTimer = setTimeout(() => $toast.classList.remove('show'), duration);
+  toastTimer = setTimeout(() => $toast.classList.remove('show'), ms);
 }
 
-// ── About page ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════
+// ABOUT
+// ═══════════════════════════════════════════════════
 function showAbout() {
-  const tab = activeTab();
-  if (!tab) return;
-  tab.url = HOME_URL;
-  showNewTab();
-  toast('Chromium Browser — Built with HTML, CSS & JS • GitHub Pages');
+  toast('Chromium Browser — HTML/CSS/JS • GitHub Pages • No dependencies', 4000);
 }
 
-// ── Utility ──────────────────────────────────────────────────
-function esc(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// ═══════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════
+function id(s) { return document.getElementById(s); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function pad(n) { return String(n).padStart(2, '0'); }
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function safeJSON(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
 }
 
-// ── Init ──────────────────────────────────────────────────────
-createTab(HOME_URL, true);
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+id('new-tab-btn').addEventListener('click', () => createTab());
+
+loadSettings();
+createTab(NEWTAB, true);
 
 })();
 </script>

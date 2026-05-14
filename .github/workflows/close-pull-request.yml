@@ -10,6 +10,7 @@ on:
 
 jobs:
   run:
+    if: "!startsWith(github.head_ref, 'claude/')"
     runs-on: ubuntu-latest
     steps:
     - uses: superbrothers/close-pull-request@v3

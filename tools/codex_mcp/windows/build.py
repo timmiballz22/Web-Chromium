@@ -2,6 +2,7 @@
 """Build self-contained Windows installers from the pinned launcher lockfile."""
 
 import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
@@ -65,9 +66,15 @@ def main():
             license_file.write_bytes(response.read())
         build = work / "build"
         build.mkdir()
-        for path in [*SOURCE.glob("*.go"), SOURCE / "go.mod"]:
+        for path in [*SOURCE.glob("*.go"), SOURCE / "go.mod", SOURCE / "go.sum"]:
             shutil.copyfile(path, build / path.name)
         subprocess.run(["go", "test", "./..."], cwd=build, check=True)
+        goroot = Path(subprocess.check_output(["go", "env", "GOROOT"], cwd=build, text=True).strip())
+        shutil.copyfile(goroot / "LICENSE", runtime / "Go-LICENSE.txt")
+        windows_module = json.loads(subprocess.check_output(
+            ["go", "mod", "download", "-json", "golang.org/x/sys"], cwd=build, text=True,
+        ))
+        shutil.copyfile(Path(windows_module["Dir"]) / "LICENSE", runtime / "x-sys-LICENSE.txt")
         checksums = []
         for label, (goarch, expected) in TARGETS.items():
             node = fetch_node(label, expected, work)

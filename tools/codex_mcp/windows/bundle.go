@@ -14,8 +14,9 @@ import (
 // installBundle publishes a complete, versioned runtime together with a
 // content marker. An interrupted setup can be rerun without partial files.
 func installBundle(root, version string, payload []byte) (string, error) {
-	target := filepath.Join(root, version)
-	marker := fmt.Sprintf("%x\n", sha256.Sum256(payload))
+	digest := fmt.Sprintf("%x", sha256.Sum256(payload))
+	target := filepath.Join(root, version+"-"+digest[:12])
+	marker := digest + "\n"
 	if ok := installedBundle(target, marker); ok {
 		return target, nil
 	}

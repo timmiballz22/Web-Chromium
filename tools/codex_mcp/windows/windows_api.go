@@ -7,14 +7,16 @@ import (
 	"syscall"
 	"time"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 const title = "Web-Chromium MCP Setup"
 
 var (
-	user32           = syscall.NewLazyDLL("user32.dll")
-	gdi32            = syscall.NewLazyDLL("gdi32.dll")
-	versionDLL       = syscall.NewLazyDLL("version.dll")
+	user32           = windows.NewLazySystemDLL("user32.dll")
+	gdi32            = windows.NewLazySystemDLL("gdi32.dll")
+	versionDLL       = windows.NewLazySystemDLL("version.dll")
 	messageBoxW      = user32.NewProc("MessageBoxW")
 	createWindow     = user32.NewProc("CreateWindowExW")
 	destroyWindow    = user32.NewProc("DestroyWindow")

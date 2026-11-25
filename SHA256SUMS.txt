@@ -1,2 +1,2 @@
-e978e7edf840f2b0d46add25ab2e9e13a2795ec99d97174b1027ab0aa73eab53  Web-Chromium-MCP-Setup-x64.exe
-dd2fee02314c01f477b59d416bcd1a23dcf2dc4c7a29e6a29f0aa5b14a30fd6b  Web-Chromium-MCP-Setup-arm64.exe
+35cb34624d30bdf6b17546f9c9fe4ca49bf7d76f487f542f2f47d082a0a0d5cd  Web-Chromium-MCP-Setup-x64.exe
+a35dc8489243b49345b738b665f4c1dc59987c53956849929a163ea806af0587  Web-Chromium-MCP-Setup-arm64.exe

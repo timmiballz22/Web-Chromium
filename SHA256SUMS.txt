@@ -1,0 +1,2 @@
+e978e7edf840f2b0d46add25ab2e9e13a2795ec99d97174b1027ab0aa73eab53  Web-Chromium-MCP-Setup-x64.exe
+dd2fee02314c01f477b59d416bcd1a23dcf2dc4c7a29e6a29f0aa5b14a30fd6b  Web-Chromium-MCP-Setup-arm64.exe

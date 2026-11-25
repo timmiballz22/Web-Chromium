@@ -2,6 +2,8 @@
 
 This launcher connects a Chromium executable on your computer to a local Codex MCP client. It starts a visible browser on the first browser action and uses a temporary profile for each browser instance. You can sign in to sites in that window when a task calls for it.
 
+On Windows, use the [double-click installer](windows/README.md).
+
 ## Set up
 
 Use Node.js 24 LTS, npm, a local Codex CLI, and an up-to-date Chromium (150 or later for WebMCP). To fetch just the launcher and install its pinned MCP server, run:
